@@ -1,27 +1,21 @@
 package de.brainschweig;
 
-import java.util.Set;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
+import java.util.Set;
 
-public class Database {
+class Database {
 
-	static Connection conn = null;
-	static final Logger logger = LogManager.getLogger(Database.class.getName());
+    private static final Logger logger = LogManager.getLogger(Database.class.getName());
+    private static Connection conn = null;
 
-	public static void loadDriver() {
-		try {
+    static void loadDriver() {
+        try {
 			// The newInstance() call is a work around for some
 			// broken Java implementations
 
@@ -35,8 +29,8 @@ public class Database {
 		logger.info("jdbc.Driver loaded sucessfully");
 	}
 
-	public static void connect() {
-		try {
+    static void connect() {
+        try {
 			conn = DriverManager.getConnection("jdbc:mysql://localhost/crawler?" + "user=crawler&password=crawlerX");
 
 		} catch (SQLException ex) {
@@ -46,8 +40,8 @@ public class Database {
 		}
 	}
 
-	public static void storeHyperLinks(Set<String> hyperLinks) {
-		PreparedStatement insertUrl = null;
+    static void storeHyperLinks(Set<String> hyperLinks) {
+        PreparedStatement insertUrl = null;
 		String insertStatement = "INSERT INTO `crawler`.`url` ( `url`, `md5sum`, `mtimestamp`, `mtime`) VALUES ( ?, ?, NOW(), NOW());";
 		try {
 
@@ -82,8 +76,10 @@ public class Database {
 				e1.printStackTrace();
 			} finally {
 				try {
-					insertUrl.close();
-				} catch (SQLException e1) {
+                    if (insertUrl != null) {
+                        insertUrl.close();
+                    }
+                } catch (SQLException e1) {
 					logger.error("Close of PreparedStatement went wrong: ", e1);
 				}
 			}
@@ -115,14 +111,11 @@ public class Database {
 			logger.error("Executing Query went wrong: ", e);
 		}
 
-		if (md5count > 0)
-			return true;
-		else
-			return false;
-	}
+        return md5count > 0;
+    }
 		// synchronized
-	public static void fetchHyperLink(StringBuilder sUrlid, StringBuilder url) {
-		PreparedStatement insertStatus = null;
+        static void fetchHyperLink(StringBuilder sUrlid, StringBuilder url) {
+            PreparedStatement insertStatus = null;
 		Statement stmt;
 		ResultSet rs;
 		int urlid = -1;
@@ -166,8 +159,8 @@ public class Database {
 
 	}
 
-	public static void insertHyperLinkStatus(int urlid, String status) {
-		PreparedStatement insertUrl = null;
+    static void insertHyperLinkStatus(int urlid, String status) {
+        PreparedStatement insertUrl = null;
 		String insertStatement = "INSERT INTO `crawler`.`status` ( `url_idurl`, `status`, `mtimestamp`, `mtime`) VALUES (?, ?, NOW(), NOW());";
 		try {
 
