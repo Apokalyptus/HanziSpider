@@ -1,0 +1,1 @@
+delete from url where idurl > 1

@@ -1,0 +1,1 @@
+SELECT u.idurl, u.url, s.status FROM url u LEFT JOIN status s ON (u.idurl = s.url_idurl) WHERE s.status IS NULL LIMIT 1;
