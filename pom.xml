@@ -3,10 +3,31 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>de.brainschweig.hanzespider</groupId>
   <artifactId>HanzeSpider</artifactId>
-  <packaging>jar</packaging>
+<!-- <packaging>jar</packaging> -->
   <version>1.0-SNAPSHOT</version>
   <name>HanzeSpider</name>
   <url>http://maven.apache.org</url>
+   <build>
+    <plugins>
+      <!-- any other plugins -->
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
@@ -15,19 +36,17 @@
       <scope>test</scope>
     </dependency>
 <!-- https://mvnrepository.com/artifact/log4j/log4j -->
-<dependency>
-    <groupId>log4j</groupId>
-    <artifactId>log4j</artifactId>
-    <version>1.2.17</version>
-</dependency>
+    <dependency>
+     <groupId>log4j</groupId>
+     <artifactId>log4j</artifactId>
+     <version>1.2.17</version>
+    </dependency>
 <!-- https://mvnrepository.com/artifact/org.jsoup/jsoup -->
-<dependency>
-    <groupId>org.jsoup</groupId>
-    <artifactId>jsoup</artifactId>
-    <version>1.11.3</version>
-</dependency>
-
-
+    <dependency>
+     <groupId>org.jsoup</groupId>
+     <artifactId>jsoup</artifactId>
+     <version>1.11.3</version>
+    </dependency>
   </dependencies>
   <properties>
         <maven.compiler.target>1.8</maven.compiler.target>

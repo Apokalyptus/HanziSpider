@@ -1,4 +1,4 @@
-package de.brainschweig;
+package de.brainschweig.hanzespider;
 
 import java.util.Arrays;
 import java.util.HashSet;
