@@ -17,6 +17,7 @@ public class ProcessLoop implements Runnable {
 
 	@Override
 	public void run() {
+		
 		boolean isRunning = true;
 
 		while (isRunning) {
