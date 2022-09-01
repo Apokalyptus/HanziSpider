@@ -11,17 +11,17 @@ import java.util.Set;
 
 class Database {
 
-    private static final Logger logger = LogManager.getLogger(Database.class.getName());
-    private static Connection conn = null;
+	private static final Logger logger = LogManager.getLogger(Database.class.getName());
+	private static Connection conn = null;
 
-    static void loadDriver() {
-        try {
+	static void loadDriver() {
+		try {
 			// The newInstance() call is a work around for some
 			// broken Java implementations
 
-			Class.forName("com.mysql.jdbc.Driver");
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
-			logger.error("Could not load jdbc.Driver!!");
+			logger.error("Could not load jdbc.Driver!!" + ex.getMessage());
 			System.exit(-1);
 
 		}
@@ -29,19 +29,20 @@ class Database {
 		logger.info("jdbc.Driver loaded sucessfully");
 	}
 
-    static void connect() {
-        try {
-			conn = DriverManager.getConnection("jdbc:mysql://localhost/crawler?" + "user=crawler&password=crawlerX");
+	static void connect(String connectionString) {
+		try {
+			// jdbc:mysql://localhost/crawler?user=crawler&password=crawlerX
+			conn = DriverManager.getConnection(connectionString);
 
 		} catch (SQLException ex) {
-			
+
 			logger.error("Connect the Database went wrong: ", ex);
 			System.exit(-1);
 		}
 	}
 
-    static void storeHyperLinks(Set<String> hyperLinks) {
-        PreparedStatement insertUrl = null;
+	static void storeHyperLinks(Set<String> hyperLinks) {
+		PreparedStatement insertUrl = null;
 		String insertStatement = "INSERT INTO `crawler`.`url` ( `url`, `md5sum`, `mtimestamp`, `mtime`) VALUES ( ?, ?, NOW(), NOW());";
 		try {
 
@@ -63,7 +64,7 @@ class Database {
 				insertUrl.executeUpdate();
 
 				conn.commit();
-				
+
 				logger.info("Inserted: Hyperlink: " + hyperLink + " MD5:" + md5string);
 			}
 
@@ -76,10 +77,10 @@ class Database {
 				e1.printStackTrace();
 			} finally {
 				try {
-                    if (insertUrl != null) {
-                        insertUrl.close();
-                    }
-                } catch (SQLException e1) {
+					if (insertUrl != null) {
+						insertUrl.close();
+					}
+				} catch (SQLException e1) {
 					logger.error("Close of PreparedStatement went wrong: ", e1);
 				}
 			}
@@ -111,11 +112,12 @@ class Database {
 			logger.error("Executing Query went wrong: ", e);
 		}
 
-        return md5count > 0;
-    }
-		// synchronized
-        static void fetchHyperLink(StringBuilder sUrlid, StringBuilder url) {
-            PreparedStatement insertStatus = null;
+		return md5count > 0;
+	}
+
+	// synchronized
+	static void fetchHyperLink(StringBuilder sUrlid, StringBuilder url) {
+		PreparedStatement insertStatus = null;
 		Statement stmt;
 		ResultSet rs;
 		int urlid = -1;
@@ -132,7 +134,10 @@ class Database {
 			if (!rs.next()) {
 				logger.error("Got no ResultSet from Database - No HyperLinks without status available.");
 				return;
+			} else {
+				logger.debug("got Resultset from Database - Found Hyperlinks without status");
 			}
+		
 
 			urlid = rs.getInt("idurl");
 			url.append(rs.getString("url"));
@@ -145,7 +150,7 @@ class Database {
 			insertStatus.setString(2, "check-out");
 			insertStatus.executeUpdate();
 			conn.commit();
-			
+
 			rs.close();
 			insertStatus.close();
 
@@ -154,13 +159,13 @@ class Database {
 
 		} catch (SQLException e) {
 			logger.error("Executing Query went wrong:", e);
-			
-		} 
+
+		}
 
 	}
 
-    static void insertHyperLinkStatus(int urlid, String status) {
-        PreparedStatement insertUrl = null;
+	static void insertHyperLinkStatus(int urlid, String status) {
+		PreparedStatement insertUrl = null;
 		String insertStatement = "INSERT INTO `crawler`.`status` ( `url_idurl`, `status`, `mtimestamp`, `mtime`) VALUES (?, ?, NOW(), NOW());";
 		try {
 
@@ -173,7 +178,7 @@ class Database {
 			conn.commit();
 
 			insertUrl.close();
-			
+
 			logger.info("Insert Status urlid: " + urlid + " Status: " + status);
 
 		} catch (SQLException e) {
@@ -182,7 +187,7 @@ class Database {
 				conn.rollback();
 			} catch (SQLException e1) {
 				logger.error("Rollback went wrong", e1);
-				
+
 			}
 		}
 	}

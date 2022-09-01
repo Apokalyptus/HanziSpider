@@ -17,7 +17,7 @@ public class ProcessLoop implements Runnable {
 
 	@Override
 	public void run() {
-		
+
 		boolean isRunning = true;
 
 		while (isRunning) {
@@ -28,7 +28,11 @@ public class ProcessLoop implements Runnable {
 				int urlid = 0;
 
 				Database.fetchHyperLink(sUrlid, url);
-				urlid = Integer.parseInt(sUrlid.toString());
+				try {
+					urlid = Integer.parseInt(sUrlid.toString());
+				} catch (NumberFormatException ex) {
+					continue;
+				}
 
 				if (url.length() == 0) {
 					logger.debug("Found URL with length == 0");
@@ -70,12 +74,12 @@ public class ProcessLoop implements Runnable {
 				// write to file
 				logger.info("hyperlinks: " + hyperLinks.size() + " BodyContent: " + bodyContent.length());
 				OutputFileHandler.add(bodyContent.toString());
-				
-				
+
 			} catch (Exception ex) {
 				logger.error("Found unhandled exception: ", ex);
 			}
-
+		
+			
 		}
 
 	}
