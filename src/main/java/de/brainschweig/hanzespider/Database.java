@@ -21,7 +21,7 @@ class Database {
 
 			Class.forName("com.mysql.cj.jdbc.Driver").getDeclaredConstructor().newInstance();
 		} catch (Exception ex) {
-			logger.error("Could not load jdbc.Driver!!");
+			logger.error("Could not load jdbc.Driver!!" + ex.getMessage());
 			System.exit(-1);
 
 		}
@@ -29,10 +29,10 @@ class Database {
 		logger.info("jdbc.Driver loaded sucessfully");
 	}
 
-	static void connect() {
+	static void connect(String connectionString) {
 		try {
-			conn = DriverManager.getConnection("jdbc:mysql://localhost/crawler?"
-					+ "useTimezone=true&serverTimezone=UTC&user=crawler&password=crawlerX");
+			// jdbc:mysql://localhost/crawler?user=crawler&password=crawlerX
+			conn = DriverManager.getConnection(connectionString);
 
 		} catch (SQLException ex) {
 
@@ -134,8 +134,10 @@ class Database {
 			if (!rs.next()) {
 				logger.error("Got no ResultSet from Database - No HyperLinks without status available.");
 				return;
+			} else {
+				logger.debug("got Resultset from Database - Found Hyperlinks without status");
 			}
-
+		
 			urlid = rs.getInt("idurl");
 			url.append(rs.getString("url"));
 			rs.close();
