@@ -28,11 +28,11 @@ public class ProcessLoop implements Runnable {
 				int urlid = 0;
 
 				Database.fetchHyperLink(sUrlid, url);
-				try {
-					urlid = Integer.parseInt(sUrlid.toString());
-				} catch (NumberFormatException ex) {
+				if (sUrlid.toString().isEmpty()) {
+					isRunning = false;
 					continue;
 				}
+				urlid = Integer.parseInt(sUrlid.toString());
 
 				if (url.length() == 0) {
 					logger.debug("Found URL with length == 0");
@@ -49,17 +49,30 @@ public class ProcessLoop implements Runnable {
 
 				// get webpage
 				try {
-					WebHandler.getWebContent(url.toString(), bodyContent, hyperLinks);
+					// WebHandlerJsoup whjs = new WebHandlerJsoup();
+					// whjs.getWebContent(url.toString(), bodyContent, hyperLinks);
+					WebHandlerSelenium whjs = new WebHandlerSelenium();
+					whjs.getWebContent(url.toString(), bodyContent, hyperLinks);
 				} catch (IOException e) {
 					logger.error("Fetching web content from " + url + " went wrong: ", e);
 					Database.insertHyperLinkStatus(urlid, "visited-error");
 					continue;
+				} catch (NullPointerException npe) {
+					logger.error("NullPointerException:", npe);
 				}
 				// check hyperlinks against some rules
+				for (String hyperLink : hyperLinks) {
+					System.out.println("LINK2: " + (null == hyperLink ? "Nothing" : hyperLink));
+				}
+
 				HyperLinkProcessor.cleanUpHyperLinks(hyperLinks);
 
+				for (String hyperLink : hyperLinks) {
+					System.out.println("LINK3: " + (null == hyperLink ? "Nothing" : hyperLink));
+				}
+
 				// save hyperLinks to DB
-				Database.storeHyperLinks(hyperLinks);
+				Database.insertHyperLinks(hyperLinks);
 
 				// process Text
 				if (bodyContent.length() == 0) {
@@ -73,13 +86,13 @@ public class ProcessLoop implements Runnable {
 
 				// write to file
 				logger.info("hyperlinks: " + hyperLinks.size() + " BodyContent: " + bodyContent.length());
-				OutputFileHandler.add(bodyContent.toString());
+				OutputHandlerDatabase of = new OutputHandlerDatabase();
+				of.addToBuffer(bodyContent.toString());
 
 			} catch (Exception ex) {
 				logger.error("Found unhandled exception: ", ex);
 			}
-		
-			
+
 		}
 
 	}

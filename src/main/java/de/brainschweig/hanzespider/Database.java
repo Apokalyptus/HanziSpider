@@ -19,9 +19,9 @@ class Database {
 			// The newInstance() call is a work around for some
 			// broken Java implementations
 
-			Class.forName("com.mysql.cj.jdbc.Driver");
+			Class.forName("com.mysql.cj.jdbc.Driver").getDeclaredConstructor().newInstance();
 		} catch (Exception ex) {
-			logger.error("Could not load jdbc.Driver!!" + ex.getMessage());
+			logger.error("Could not load jdbc.Driver!!");
 			System.exit(-1);
 
 		}
@@ -29,10 +29,10 @@ class Database {
 		logger.info("jdbc.Driver loaded sucessfully");
 	}
 
-	static void connect(String connectionString) {
+	static void connect() {
 		try {
-			// jdbc:mysql://localhost/crawler?user=crawler&password=crawlerX
-			conn = DriverManager.getConnection(connectionString);
+			conn = DriverManager.getConnection("jdbc:mysql://localhost/crawler?"
+					+ "useTimezone=true&serverTimezone=UTC&user=crawler&password=crawlerX");
 
 		} catch (SQLException ex) {
 
@@ -41,7 +41,7 @@ class Database {
 		}
 	}
 
-	static void storeHyperLinks(Set<String> hyperLinks) {
+	static void insertHyperLinks(Set<String> hyperLinks) {
 		PreparedStatement insertUrl = null;
 		String insertStatement = "INSERT INTO `crawler`.`url` ( `url`, `md5sum`, `mtimestamp`, `mtime`) VALUES ( ?, ?, NOW(), NOW());";
 		try {
@@ -134,10 +134,7 @@ class Database {
 			if (!rs.next()) {
 				logger.error("Got no ResultSet from Database - No HyperLinks without status available.");
 				return;
-			} else {
-				logger.debug("got Resultset from Database - Found Hyperlinks without status");
 			}
-		
 
 			urlid = rs.getInt("idurl");
 			url.append(rs.getString("url"));
@@ -180,6 +177,34 @@ class Database {
 			insertUrl.close();
 
 			logger.info("Insert Status urlid: " + urlid + " Status: " + status);
+
+		} catch (SQLException e) {
+			logger.error("Executing Query went wrong:", e);
+			try {
+				conn.rollback();
+			} catch (SQLException e1) {
+				logger.error("Rollback went wrong", e1);
+
+			}
+		}
+	}
+
+	static void insertCrawlResult(String result) {
+		PreparedStatement insertResult = null;
+		String insertStatement = "INSERT INTO `crawler`.`results` ( `hanze` ) VALUES (?);";
+		try {
+
+			conn.setAutoCommit(false);
+
+			insertResult = conn.prepareStatement(insertStatement);
+		
+			insertResult.setString(1, result);
+			insertResult.executeUpdate();
+			conn.commit();
+
+			insertResult.close();
+
+			logger.info("Insert Result Result: " + result);
 
 		} catch (SQLException e) {
 			logger.error("Executing Query went wrong:", e);
