@@ -1,2 +1,4 @@
 target/
 merker
+.vscode/settings.json
+bin/

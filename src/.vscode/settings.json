@@ -1,0 +1,8 @@
+{
+    "files.exclude": {
+        "**/.project": true,
+        "**/.settings": true,
+        "**/.factorypath": true
+    },
+    "maven.view": "flat"
+}
