@@ -7,6 +7,7 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.By;
+import org.openqa.selenium.Proxy;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxBinary;
@@ -29,7 +30,15 @@ public class WebHandlerSelenium {
 		firefoxBinary.addCommandLineOptions("--headless");
 
 		System.setProperty("webdriver.gecko.driver", "/usr/bin/geckodriver");
+
+		Proxy proxy = new Proxy();
+		// Adding the desired host and port for the http, ssl, and ftp Proxy Servers
+		// respectively
+		proxy.setHttpProxy("10.0.2.15:3128");
+		proxy.setSslProxy("10.0.2.15:3128");
+		
 		FirefoxOptions firefoxOptions = new FirefoxOptions();
+		firefoxOptions.setCapability("proxy", proxy);
 		firefoxOptions.setBinary(firefoxBinary);
 		WebDriver driver = new FirefoxDriver(firefoxOptions);
 
