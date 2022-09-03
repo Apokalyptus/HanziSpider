@@ -13,21 +13,22 @@ import java.util.Queue;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class OutputHandlerFile implements IOutputHandler {
-
+public class _OutputFileHandler implements Runnable {
+	
 	static private String homeDirectory = System.getProperty("user.home");
 
 	static private String outputFileFolder = homeDirectory + File.separator + ".HanzeSpider/out";
 	static private Queue<String> buffer = new LinkedList<String>();
 	static private int fileSize = 1024 * 100;
 
-	static final Logger logger = LogManager.getLogger(OutputHandlerFile.class.getName());
+	static final Logger logger = LogManager.getLogger(_OutputFileHandler.class.getName());
 
-	public synchronized void addToBuffer(String bodyContent) {
+	
+	public static synchronized void add(String bodyContent) {
 		buffer.add(bodyContent);
 	}
 
-	public synchronized String getBuffer() {
+	public static synchronized String get() {
 		return buffer.poll();
 	}
 
@@ -37,7 +38,7 @@ public class OutputHandlerFile implements IOutputHandler {
 			StringBuilder buffer = new StringBuilder();
 
 			do {
-				String next = getBuffer();
+				String next = get();
 				if (null == next || next.isEmpty()) {
 					try {
 						Thread.sleep(1000);
@@ -52,19 +53,20 @@ public class OutputHandlerFile implements IOutputHandler {
 				try {
 					Thread.sleep(100);
 				} catch (InterruptedException e) {
-					logger.error("Failed to sleep 1000ms", e);
+					logger.error("Failed to sleep 1000ms",e);
 				}
 			} while (buffer.length() < fileSize);
 
 			Writer out = null;
 			long sfileName = System.currentTimeMillis();
 			String fileName = String.valueOf(sfileName);
-
+			
 			try {
 				out = new BufferedWriter(new OutputStreamWriter(
 						new FileOutputStream(outputFileFolder + File.separator + fileName), "UTF-8"));
 				out.write(buffer.toString());
 
+				
 			} catch (IOException e) {
 				logger.error("IOException", e);
 				e.printStackTrace();
@@ -78,8 +80,8 @@ public class OutputHandlerFile implements IOutputHandler {
 					e.printStackTrace();
 				}
 			}
-
-			logger.info("Written to file: '" + fileName + "'");
+			
+			logger.info("Written to file: '"+ fileName +"'");
 
 		}
 	}
