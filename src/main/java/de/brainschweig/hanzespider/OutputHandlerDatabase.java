@@ -6,7 +6,7 @@ import java.util.Queue;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class OutputHandlerDatabase implements OutputHandlerInterface {
+public class OutputHandlerDatabase implements IOutputHandler {
 
 	static private Queue<String> buffer = new LinkedList<String>();
 
