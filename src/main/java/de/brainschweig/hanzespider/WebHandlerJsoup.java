@@ -9,7 +9,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
-public class WebHandlerJsoup {
+public class WebHandlerJsoup implements IWebHandler{
 	
 	static final Logger logger = LogManager.getLogger(WebHandlerJsoup.class.getName());
 
