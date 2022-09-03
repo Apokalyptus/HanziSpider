@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.lang.System;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -14,10 +16,17 @@ public class HanzeSpider {
 		final int MAX_THREADS = 5;
 		// Start logger
 		final Logger logger = LogManager.getLogger(HanzeSpider.class.getName());
+		final String connectionString = System.getenv("DB_CONNECTION_STRING");
+
+		if(connectionString == null || connectionString.isBlank()){
+			System.out.println("ERROR: Environement Variable DB_CONNECTION_STRING is empty.");
+			logger.error("Environement Variable DB_CONNECTION_STRING is empty.");
+			System.exit(-1);
+		}
 		
 		try {
 			Database.loadDriver();
-			Database.connect();
+			Database.connect(connectionString);
 
 			// get Home Dir
 
@@ -71,7 +80,7 @@ public class HanzeSpider {
 
 			Thread ofh = new Thread(new OutputHandlerDatabase(), "OutputHandlerDatabase");
 			ofh.start();
-
+			
 			List<Thread> lt = new ArrayList<Thread>();
 
 			// Spawn threads
