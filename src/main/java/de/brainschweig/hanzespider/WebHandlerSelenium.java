@@ -14,13 +14,22 @@ import org.openqa.selenium.firefox.FirefoxBinary;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 
-public class WebHandlerSelenium {
+import de.brainschweig.interfaces.IWebHandler;
+
+public class WebHandlerSelenium implements IWebHandler {
 
 	static final Logger logger = LogManager.getLogger(WebHandlerSelenium.class.getName());
 	// private static ChromeDriverService service;
 	// private WebDriver driver = null;
 
-	public void getWebContent(String url, StringBuilder bodyContent, Set<String> hyperLinks) throws IOException {
+	private static final String name = "Selenium";
+
+	public String getName() {
+		return name;
+	}
+
+	public void getWebContent(String url, StringBuilder bodyContent, Set<String> hyperLinks, String proxyAddr,
+			String proxyPort) throws IOException {
 
 		// service = new ChromeDriverService.Builder().usingDriverExecutable(new
 		// File("/usr/bin/chromedriver"))
@@ -31,14 +40,16 @@ public class WebHandlerSelenium {
 
 		System.setProperty("webdriver.gecko.driver", "/usr/bin/geckodriver");
 
-		Proxy proxy = new Proxy();
-		// Adding the desired host and port for the http, ssl, and ftp Proxy Servers
-		// respectively
-		proxy.setHttpProxy("10.0.2.15:3128");
-		proxy.setSslProxy("10.0.2.15:3128");
-		
 		FirefoxOptions firefoxOptions = new FirefoxOptions();
-		firefoxOptions.setCapability("proxy", proxy);
+
+		Proxy proxy = new Proxy();
+
+		if (proxyAddr != null && !proxyAddr.isBlank() && proxyPort != null && !proxyPort.isBlank()) {
+			proxy.setHttpProxy(proxyAddr+":"+proxyPort);
+			proxy.setSslProxy(proxyAddr+":"+proxyPort);
+			firefoxOptions.setCapability("proxy", proxy);
+		}
+
 		firefoxOptions.setBinary(firefoxBinary);
 		WebDriver driver = new FirefoxDriver(firefoxOptions);
 

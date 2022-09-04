@@ -19,11 +19,9 @@ public class HyperLinkProcessor {
 			} catch (MalformedURLException mue) {
 				continue;
 			}
-			System.out.println("Angekommen");
+		
 			System.out.println("Hyperlink: " + (null==hyperLink?"none":hyperLink) + "\nhyperlink.trim: " + url.toString());
-			System.out.println("Angekommen2");
-			// if(hyperLink.trim().isEmpty()) continue;
-			
+
 			newHyperLinks.add(url.toString());
 		}
 		

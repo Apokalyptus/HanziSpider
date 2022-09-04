@@ -19,7 +19,7 @@ class Database {
 			// The newInstance() call is a work around for some
 			// broken Java implementations
 
-			Class.forName("com.mysql.cj.jdbc.Driver").getDeclaredConstructor().newInstance();
+			//Class.forName("com.mysql.cj.jdbc.Driver").getDeclaredConstructor().newInstance();
 		} catch (Exception ex) {
 			logger.error("Could not load jdbc.Driver!!" + ex.getMessage());
 			System.exit(-1);
@@ -116,7 +116,7 @@ class Database {
 	}
 
 	// synchronized
-	static void fetchHyperLink(StringBuilder sUrlid, StringBuilder url) {
+	static boolean fetchHyperLink(StringBuilder sUrlid, StringBuilder url) {
 		PreparedStatement insertStatus = null;
 		Statement stmt;
 		ResultSet rs;
@@ -133,7 +133,7 @@ class Database {
 			rs = stmt.executeQuery(selectStatement);
 			if (!rs.next()) {
 				logger.error("Got no ResultSet from Database - No HyperLinks without status available.");
-				return;
+				return false;
 			} else {
 				logger.debug("got Resultset from Database - Found Hyperlinks without status");
 			}
@@ -160,6 +160,7 @@ class Database {
 			logger.error("Executing Query went wrong:", e);
 
 		}
+		return true;
 
 	}
 
@@ -206,7 +207,7 @@ class Database {
 
 			insertResult.close();
 
-			logger.info("Insert Result Result: " + result);
+			logger.info("Insert Result: " + result);
 
 		} catch (SQLException e) {
 			logger.error("Executing Query went wrong:", e);

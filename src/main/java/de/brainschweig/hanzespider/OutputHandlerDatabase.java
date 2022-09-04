@@ -6,11 +6,19 @@ import java.util.Queue;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import de.brainschweig.interfaces.IOutputHandler;
+
 public class OutputHandlerDatabase implements IOutputHandler {
 
 	static private Queue<String> buffer = new LinkedList<String>();
 
 	static final Logger logger = LogManager.getLogger(OutputHandlerDatabase.class.getName());
+
+	private static final String name = "MySQLDatabase";
+
+	public String getName() {
+		return name;
+	}
 
 	public synchronized void addToBuffer(String bodyContent) {
 		buffer.add(bodyContent);
@@ -38,15 +46,13 @@ public class OutputHandlerDatabase implements IOutputHandler {
 			}
 
 			String[] resultChunks = next.split("\\n");
-			for(String resultChunk : resultChunks){
-				if(resultChunk.isEmpty()) { 
+			for (String resultChunk : resultChunks) {
+				if (resultChunk.isEmpty()) {
 					continue;
 				}
 				Database.insertCrawlResult(resultChunk);
 				logger.info("Result written to Database");
 			}
-
-			
 
 		}
 	}

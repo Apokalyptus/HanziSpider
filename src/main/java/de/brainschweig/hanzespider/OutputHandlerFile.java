@@ -13,6 +13,8 @@ import java.util.Queue;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import de.brainschweig.interfaces.IOutputHandler;
+
 public class OutputHandlerFile implements IOutputHandler {
 
 	static private String homeDirectory = System.getProperty("user.home");
@@ -22,6 +24,12 @@ public class OutputHandlerFile implements IOutputHandler {
 	static private int fileSize = 1024 * 100;
 
 	static final Logger logger = LogManager.getLogger(OutputHandlerFile.class.getName());
+
+	private final String name = "File";
+
+	public String getName() {
+		return name;
+	}
 
 	public synchronized void addToBuffer(String bodyContent) {
 		buffer.add(bodyContent);
