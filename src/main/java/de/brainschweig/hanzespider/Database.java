@@ -14,24 +14,8 @@ class Database {
 	private static final Logger logger = LogManager.getLogger(Database.class.getName());
 	private static Connection conn = null;
 
-	static void loadDriver() {
-		try {
-			// The newInstance() call is a work around for some
-			// broken Java implementations
-
-			//Class.forName("com.mysql.cj.jdbc.Driver").getDeclaredConstructor().newInstance();
-		} catch (Exception ex) {
-			logger.error("Could not load jdbc.Driver!!" + ex.getMessage());
-			System.exit(-1);
-
-		}
-
-		logger.info("jdbc.Driver loaded sucessfully");
-	}
-
 	static void connect(String connectionString) {
 		try {
-			// jdbc:mysql://localhost/crawler?user=crawler&password=crawlerX
 			conn = DriverManager.getConnection(connectionString);
 
 		} catch (SQLException ex) {
@@ -116,7 +100,7 @@ class Database {
 	}
 
 	// synchronized
-	static boolean fetchHyperLink(StringBuilder sUrlid, StringBuilder url) {
+	static synchronized boolean fetchHyperLink(StringBuilder sUrlid, StringBuilder url) {
 		PreparedStatement insertStatus = null;
 		Statement stmt;
 		ResultSet rs;
@@ -137,7 +121,7 @@ class Database {
 			} else {
 				logger.debug("got Resultset from Database - Found Hyperlinks without status");
 			}
-		
+
 			urlid = rs.getInt("idurl");
 			url.append(rs.getString("url"));
 			rs.close();
@@ -200,7 +184,7 @@ class Database {
 			conn.setAutoCommit(false);
 
 			insertResult = conn.prepareStatement(insertStatement);
-		
+
 			insertResult.setString(1, result);
 			insertResult.executeUpdate();
 			conn.commit();

@@ -117,7 +117,7 @@ public class ProcessLoop implements Runnable {
 				} catch (NullPointerException npe) {
 					logger.error("NullPointerException:", npe);
 				}
-		
+
 				HyperLinkProcessor.cleanUpHyperLinks(hyperLinks);
 
 				// save hyperLinks to DB
