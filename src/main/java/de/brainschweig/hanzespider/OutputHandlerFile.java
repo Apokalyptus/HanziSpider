@@ -13,22 +13,29 @@ import java.util.Queue;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class OutputFileHandler implements Runnable {
-	
+import de.brainschweig.interfaces.IOutputHandler;
+
+public class OutputHandlerFile implements IOutputHandler {
+
 	static private String homeDirectory = System.getProperty("user.home");
 
 	static private String outputFileFolder = homeDirectory + File.separator + ".HanzeSpider/out";
 	static private Queue<String> buffer = new LinkedList<String>();
 	static private int fileSize = 1024 * 100;
 
-	static final Logger logger = LogManager.getLogger(OutputFileHandler.class.getName());
+	static final Logger logger = LogManager.getLogger(OutputHandlerFile.class.getName());
 
-	
-	public static synchronized void add(String bodyContent) {
+	private final String name = "File";
+
+	public String getName() {
+		return name;
+	}
+
+	public synchronized void addToBuffer(String bodyContent) {
 		buffer.add(bodyContent);
 	}
 
-	public static synchronized String get() {
+	public synchronized String getBuffer() {
 		return buffer.poll();
 	}
 
@@ -38,7 +45,7 @@ public class OutputFileHandler implements Runnable {
 			StringBuilder buffer = new StringBuilder();
 
 			do {
-				String next = get();
+				String next = getBuffer();
 				if (null == next || next.isEmpty()) {
 					try {
 						Thread.sleep(1000);
@@ -50,23 +57,23 @@ public class OutputFileHandler implements Runnable {
 				}
 				buffer.append(next);
 				logger.info("Data consumed and added. Buffersize now: " + buffer.length());
+
 				try {
 					Thread.sleep(100);
 				} catch (InterruptedException e) {
-					logger.error("Failed to sleep 1000ms",e);
+					logger.error("Failed to sleep 1000ms", e);
 				}
 			} while (buffer.length() < fileSize);
 
 			Writer out = null;
 			long sfileName = System.currentTimeMillis();
 			String fileName = String.valueOf(sfileName);
-			
+
 			try {
 				out = new BufferedWriter(new OutputStreamWriter(
 						new FileOutputStream(outputFileFolder + File.separator + fileName), "UTF-8"));
 				out.write(buffer.toString());
 
-				
 			} catch (IOException e) {
 				logger.error("IOException", e);
 				e.printStackTrace();
@@ -80,8 +87,8 @@ public class OutputFileHandler implements Runnable {
 					e.printStackTrace();
 				}
 			}
-			
-			logger.info("Written to file: '"+ fileName +"'");
+
+			logger.info("Written to file: '" + fileName + "'");
 
 		}
 	}

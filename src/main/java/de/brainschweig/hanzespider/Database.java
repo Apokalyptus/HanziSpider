@@ -14,24 +14,8 @@ class Database {
 	private static final Logger logger = LogManager.getLogger(Database.class.getName());
 	private static Connection conn = null;
 
-	static void loadDriver() {
-		try {
-			// The newInstance() call is a work around for some
-			// broken Java implementations
-
-			Class.forName("com.mysql.cj.jdbc.Driver");
-		} catch (Exception ex) {
-			logger.error("Could not load jdbc.Driver!!" + ex.getMessage());
-			System.exit(-1);
-
-		}
-
-		logger.info("jdbc.Driver loaded sucessfully");
-	}
-
 	static void connect(String connectionString) {
 		try {
-			// jdbc:mysql://localhost/crawler?user=crawler&password=crawlerX
 			conn = DriverManager.getConnection(connectionString);
 
 		} catch (SQLException ex) {
@@ -41,7 +25,7 @@ class Database {
 		}
 	}
 
-	static void storeHyperLinks(Set<String> hyperLinks) {
+	static void insertHyperLinks(Set<String> hyperLinks) {
 		PreparedStatement insertUrl = null;
 		String insertStatement = "INSERT INTO `crawler`.`url` ( `url`, `md5sum`, `mtimestamp`, `mtime`) VALUES ( ?, ?, NOW(), NOW());";
 		try {
@@ -116,7 +100,7 @@ class Database {
 	}
 
 	// synchronized
-	static void fetchHyperLink(StringBuilder sUrlid, StringBuilder url) {
+	static synchronized boolean fetchHyperLink(StringBuilder sUrlid, StringBuilder url) {
 		PreparedStatement insertStatus = null;
 		Statement stmt;
 		ResultSet rs;
@@ -133,11 +117,10 @@ class Database {
 			rs = stmt.executeQuery(selectStatement);
 			if (!rs.next()) {
 				logger.error("Got no ResultSet from Database - No HyperLinks without status available.");
-				return;
+				return false;
 			} else {
 				logger.debug("got Resultset from Database - Found Hyperlinks without status");
 			}
-		
 
 			urlid = rs.getInt("idurl");
 			url.append(rs.getString("url"));
@@ -161,6 +144,7 @@ class Database {
 			logger.error("Executing Query went wrong:", e);
 
 		}
+		return true;
 
 	}
 
@@ -180,6 +164,34 @@ class Database {
 			insertUrl.close();
 
 			logger.info("Insert Status urlid: " + urlid + " Status: " + status);
+
+		} catch (SQLException e) {
+			logger.error("Executing Query went wrong:", e);
+			try {
+				conn.rollback();
+			} catch (SQLException e1) {
+				logger.error("Rollback went wrong", e1);
+
+			}
+		}
+	}
+
+	static void insertCrawlResult(String result) {
+		PreparedStatement insertResult = null;
+		String insertStatement = "INSERT INTO `crawler`.`results` ( `hanze` ) VALUES (?);";
+		try {
+
+			conn.setAutoCommit(false);
+
+			insertResult = conn.prepareStatement(insertStatement);
+
+			insertResult.setString(1, result);
+			insertResult.executeUpdate();
+			conn.commit();
+
+			insertResult.close();
+
+			logger.info("Insert Result: " + result);
 
 		} catch (SQLException e) {
 			logger.error("Executing Query went wrong:", e);
