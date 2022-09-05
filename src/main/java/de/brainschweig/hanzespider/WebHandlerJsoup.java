@@ -63,7 +63,6 @@ public class WebHandlerJsoup implements IWebHandler {
 			logger.debug("Web-Document not valid!!!");
 		}
 
-		// System.out.printf("\nLinks: (%d)", links.size());
 		links.forEach((link) -> {
 			hyperLinks.add(link.attr("abs:href").toString());
 		});
