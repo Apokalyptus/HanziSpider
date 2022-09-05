@@ -18,11 +18,12 @@
             "mainClass": "de.brainschweig.hanzespider.HanzeSpider",
             "projectName": "HanzeSpider",
             "env": {
-                 "DB_CONNECTION_STRING": "jdbc:mysql://localhost/crawler?user=crawler&password=crawlerX",
+                 "DB_CONNECTION_STRING": "jdbc:mysql://172.20.0.2/crawler?user=crawler&password=crawlerX",
                  "WEBHANDLER": "JSoup",
                  "OUTPUTHANDLER": "MySQLDatabase",
-                 "PROXY": "",
-                 "PROXYPORT": ""
+                 //"OUTPUTHANDLER": "File",
+                 "PROXY": "localhost",
+                 "PROXYPORT": "3128"
             }
         }
     ]

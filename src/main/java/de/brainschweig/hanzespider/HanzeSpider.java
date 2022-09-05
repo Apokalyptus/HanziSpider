@@ -110,7 +110,9 @@ public class HanzeSpider {
 
 			// Spawn threads
 			for (int a = 0; a < MAX_THREADS; a++) {
-				lt.add(new Thread(new ProcessLoop(webHandler), "Joern-" + a));
+				ProcessLoop pl = new ProcessLoop(webHandler, proxy, proxyPort);
+				pl.setOutputHandler(outputHandler);
+				lt.add(new Thread(pl, "Joern-" + a));
 				logger.info("Thread 'Joern-" + a + "' spawned.");
 
 			}
