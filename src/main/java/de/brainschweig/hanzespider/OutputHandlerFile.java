@@ -57,7 +57,7 @@ public class OutputHandlerFile implements IOutputHandler {
 				}
 				buffer.append(next);
 				logger.info("Data consumed and added. Buffersize now: " + buffer.length());
-				System.out.println("Data consumed and added. Buffersize now: " + buffer.length());
+
 				try {
 					Thread.sleep(100);
 				} catch (InterruptedException e) {
