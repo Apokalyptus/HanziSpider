@@ -8,15 +8,26 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import de.brainschweig.interfaces.IWebHandler;
+import de.brainschweig.interfaces.IOutputHandler;
 
 public class ProcessLoop implements Runnable {
 
 	static final Logger logger = LogManager.getLogger(ProcessLoop.class.getName());
 	private String webHandler = null;
 
+	private String outputHandler = null;
+
 	private String proxyAddr = null;
 
 	private String proxyPort = null;
+
+	public String getOutputHandler() {
+		return outputHandler;
+	}
+
+	public void setOutputHandler(String outputHandler) {
+		this.outputHandler = outputHandler;
+	}
 
 	public String getProxyAddr() {
 		return proxyAddr;
@@ -47,6 +58,12 @@ public class ProcessLoop implements Runnable {
 
 	public ProcessLoop(String webHandler) {
 		this.webHandler = webHandler;
+	}
+
+	public ProcessLoop(String webHandler, String proxyAddr, String proxyPort) {
+		this.webHandler = webHandler;
+		this.proxyAddr = proxyAddr;
+		this.proxyPort = proxyPort;
 	}
 
 	@Override
@@ -100,16 +117,8 @@ public class ProcessLoop implements Runnable {
 				} catch (NullPointerException npe) {
 					logger.error("NullPointerException:", npe);
 				}
-				// check hyperlinks against some rules
-				for (String hyperLink : hyperLinks) {
-					System.out.println("LINK2: " + (null == hyperLink ? "Nothing" : hyperLink));
-				}
-
+		
 				HyperLinkProcessor.cleanUpHyperLinks(hyperLinks);
-
-				for (String hyperLink : hyperLinks) {
-					System.out.println("LINK3: " + (null == hyperLink ? "Nothing" : hyperLink));
-				}
 
 				// save hyperLinks to DB
 				Database.insertHyperLinks(hyperLinks);
@@ -126,8 +135,18 @@ public class ProcessLoop implements Runnable {
 
 				// write to file
 				logger.info("hyperlinks: " + hyperLinks.size() + " BodyContent: " + bodyContent.length());
-				OutputHandlerDatabase of = new OutputHandlerDatabase();
-				of.addToBuffer(bodyContent.toString());
+
+				IOutputHandler oh = null;
+
+				if (outputHandler == null || outputHandler.isBlank()) {
+					oh = new OutputHandlerDatabase();
+				} else if (outputHandler.toLowerCase().equals("MySQLDatabase".toLowerCase())) {
+					oh = new OutputHandlerDatabase();
+				} else if (outputHandler.toLowerCase().equals("File".toLowerCase())) {
+					oh = new OutputHandlerFile();
+				}
+
+				oh.addToBuffer(bodyContent.toString());
 
 			} catch (Exception ex) {
 				logger.error("Found unhandled exception: ", ex);
