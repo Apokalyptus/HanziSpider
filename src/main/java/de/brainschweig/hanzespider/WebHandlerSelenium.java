@@ -19,8 +19,6 @@ import de.brainschweig.interfaces.IWebHandler;
 public class WebHandlerSelenium implements IWebHandler {
 
 	static final Logger logger = LogManager.getLogger(WebHandlerSelenium.class.getName());
-	// private static ChromeDriverService service;
-	// private WebDriver driver = null;
 
 	private static final String name = "Selenium";
 
@@ -31,10 +29,6 @@ public class WebHandlerSelenium implements IWebHandler {
 	public void getWebContent(String url, StringBuilder bodyContent, Set<String> hyperLinks, String proxyAddr,
 			String proxyPort) throws IOException {
 
-		// service = new ChromeDriverService.Builder().usingDriverExecutable(new
-		// File("/usr/bin/chromedriver"))
-		// .usingAnyFreePort().build();
-		// service.start();
 		FirefoxBinary firefoxBinary = new FirefoxBinary();
 		firefoxBinary.addCommandLineOptions("--headless");
 
@@ -45,8 +39,8 @@ public class WebHandlerSelenium implements IWebHandler {
 		Proxy proxy = new Proxy();
 
 		if (proxyAddr != null && !proxyAddr.isBlank() && proxyPort != null && !proxyPort.isBlank()) {
-			proxy.setHttpProxy(proxyAddr+":"+proxyPort);
-			proxy.setSslProxy(proxyAddr+":"+proxyPort);
+			proxy.setHttpProxy(proxyAddr + ":" + proxyPort);
+			proxy.setSslProxy(proxyAddr + ":" + proxyPort);
 			firefoxOptions.setCapability("proxy", proxy);
 		}
 
@@ -61,22 +55,16 @@ public class WebHandlerSelenium implements IWebHandler {
 			logger.error("cought it", e);
 		}
 
-		System.out.println("BODY:" + driver.findElement(By.tagName("body")).getText());
 		bodyContent.append(driver.findElement(By.tagName("body")).getText());
 		if (null == bodyContent || bodyContent.length() == 0) {
 			logger.error("Web-Document not valid!!!");
 		}
 
 		List<WebElement> links = driver.findElements(By.tagName("a"));
-		System.out.println("amount of Links: " + links.size());
 
 		links.forEach((link) -> {
 			hyperLinks.add(link.getAttribute("href"));
-			// System.out.println("Link: " + link.getAttribute("href"));
 		});
-		for (String hyperLink : hyperLinks) {
-			System.out.println("LINK: " + (null == hyperLink ? "Nothing" : hyperLink));
-		}
 
 		driver.close();
 	}

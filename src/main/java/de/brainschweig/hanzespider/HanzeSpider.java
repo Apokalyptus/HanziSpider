@@ -14,7 +14,7 @@ import de.brainschweig.interfaces.IOutputHandler;
 public class HanzeSpider {
 
 	public static void main(String[] args) throws IOException {
-		
+
 		final int MAX_THREADS = 10;
 		// Start logger
 		final Logger logger = LogManager.getLogger(HanzeSpider.class.getName());
@@ -30,14 +30,13 @@ public class HanzeSpider {
 		logger.info("PROXY: " + proxy);
 		logger.info("PROXYPORT: " + proxyPort);
 
-		if(connectionString == null || connectionString.isBlank()){
+		if (connectionString == null || connectionString.isBlank()) {
 			System.out.println("ERROR: Environement Variable DB_CONNECTION_STRING is empty.");
 			logger.error("Environement Variable DB_CONNECTION_STRING is empty.");
 			System.exit(-1);
 		}
-				
+
 		try {
-			Database.loadDriver();
 			Database.connect(connectionString);
 
 			// get Home Dir
@@ -92,20 +91,19 @@ public class HanzeSpider {
 
 			IOutputHandler oh = null;
 
-			if(outputHandler == null || outputHandler.isBlank()){
+			if (outputHandler == null || outputHandler.isBlank()) {
 				oh = new OutputHandlerDatabase();
-			} else if (outputHandler.toLowerCase().equals("MySQLDatabase".toLowerCase())){
+			} else if (outputHandler.toLowerCase().equals("MySQLDatabase".toLowerCase())) {
 				oh = new OutputHandlerDatabase();
-			} else if (outputHandler.toLowerCase().equals("File".toLowerCase())){
+			} else if (outputHandler.toLowerCase().equals("File".toLowerCase())) {
 				oh = new OutputHandlerFile();
 			}
-			
+
 			logger.info("OutputHandler set to: " + oh.getName());
-			
+
 			Thread ofh = new Thread(oh, oh.getName());
 			ofh.start();
 
-						
 			List<Thread> lt = new ArrayList<Thread>();
 
 			// Spawn threads
@@ -124,7 +122,7 @@ public class HanzeSpider {
 			});
 
 			logger.info("Number of Threads:" + lt.size());
-			
+
 		} catch (Exception ex) {
 			logger.error("Found Unhandled exception", ex);
 		}
