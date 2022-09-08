@@ -1,4 +1,4 @@
-package de.brainschweig.hanzespider;
+package de.brainschweig.hanzispider;
 
 import java.io.File;
 import java.io.IOException;
@@ -9,12 +9,12 @@ import java.lang.System;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class HanzeSpider {
+public class HanziSpider {
 
 	public static void main(String[] args) throws IOException {
 
 		// Start logger
-		final Logger logger = LogManager.getLogger(HanzeSpider.class.getName());
+		final Logger logger = LogManager.getLogger(HanziSpider.class.getName());
 		final String connectionString = System.getenv("DB_CONNECTION_STRING");
 
 		if(connectionString == null || connectionString.isBlank()){
@@ -30,11 +30,11 @@ public class HanzeSpider {
 			// get Home Dir
 
 			String homeDirectory = System.getProperty("user.home");
-			String destinationDirectory = homeDirectory + File.separator + ".HanzeSpider";
-			String logDirectory = homeDirectory + File.separator + ".HanzeSpider" + File.separator + "log";
-			String outDirectory = homeDirectory + File.separator + ".HanzeSpider" + File.separator + "out";
+			String destinationDirectory = homeDirectory + File.separator + ".HanziSpider";
+			String logDirectory = homeDirectory + File.separator + ".HanziSpider" + File.separator + "log";
+			String outDirectory = homeDirectory + File.separator + ".HanziSpider" + File.separator + "out";
 
-			// Create ~/.HanzeSpider if not exists
+			// Create ~/.HanziSpider if not exists
 			File f = new File(destinationDirectory);
 			if (f.exists() && f.isDirectory()) {
 				logger.info("Directory " + destinationDirectory + " exists");

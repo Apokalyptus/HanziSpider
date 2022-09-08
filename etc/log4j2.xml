@@ -2,7 +2,7 @@
 <Configuration xmlns="http://logging.apache.org/log4j/2.0/config">
 
 	<Appenders>
-		<File name="FILE" fileName="/home/joern/.HanzeSpider/log/logfile.log"
+		<File name="FILE" fileName="/home/joern/.HanziSpider/log/logfile.log"
 			append="true">
 			<PatternLayout
 				pattern="%-5p | %d{yyyy-MM-dd HH:mm:ss} | [%t] %C{2} (%F:%L) - %m%n" />
@@ -12,7 +12,7 @@
 				pattern="%-5p | %d{yyyy-MM-dd HH:mm:ss} | [%t] %C{2} (%F:%L) - %m%n" />
 		</Console>
 		<RollingFile name="RollingFile"
-			fileName="/home/joern/.HanzeSpider/log/HanzeSpider.log" filePattern="logs/$${date:yyyy-MM}/HanzeSpider-%d{MM-dd-yyyy}-%i.log.gz">
+			fileName="/home/joern/.HanziSpider/log/HanziSpider.log" filePattern="logs/$${date:yyyy-MM}/HanziSpider-%d{MM-dd-yyyy}-%i.log.gz">
 			<PatternLayout>
 				<Pattern>%-5p | %d{yyyy-MM-dd HH:mm:ss} | [%t] %C{2} (%F:%L) - %m%n
 				</Pattern>

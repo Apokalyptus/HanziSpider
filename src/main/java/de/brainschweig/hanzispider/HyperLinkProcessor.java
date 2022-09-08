@@ -1,4 +1,4 @@
-package de.brainschweig.hanzespider;
+package de.brainschweig.hanzispider;
 
 import java.util.HashSet;
 import java.util.Set;

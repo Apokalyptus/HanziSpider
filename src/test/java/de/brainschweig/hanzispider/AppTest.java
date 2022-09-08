@@ -1,4 +1,4 @@
-package de.brainschweig.hanzespider;
+package de.brainschweig.hanzispider;
 
 import junit.framework.Test;
 import junit.framework.TestCase;

@@ -1,4 +1,4 @@
-package de.brainschweig.hanzespider;
+package de.brainschweig.hanzispider;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -17,7 +17,7 @@ public class OutputFileHandler implements Runnable {
 	
 	static private String homeDirectory = System.getProperty("user.home");
 
-	static private String outputFileFolder = homeDirectory + File.separator + ".HanzeSpider/out";
+	static private String outputFileFolder = homeDirectory + File.separator + ".HanziSpider/out";
 	static private Queue<String> buffer = new LinkedList<String>();
 	static private int fileSize = 1024 * 100;
 

@@ -1,4 +1,4 @@
-package de.brainschweig.hanzespider;
+package de.brainschweig.hanzispider;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
