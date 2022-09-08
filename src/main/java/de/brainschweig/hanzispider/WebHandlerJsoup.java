@@ -1,4 +1,4 @@
-package de.brainschweig.hanzespider;
+package de.brainschweig.Hanzispider;
 
 import java.io.IOException;
 import java.security.KeyManagementException;

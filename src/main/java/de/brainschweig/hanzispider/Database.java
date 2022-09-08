@@ -1,4 +1,4 @@
-package de.brainschweig.hanzespider;
+package de.brainschweig.Hanzispider;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -178,7 +178,7 @@ class Database {
 
 	static void insertCrawlResult(String result) {
 		PreparedStatement insertResult = null;
-		String insertStatement = "INSERT INTO `crawler`.`results` ( `hanze` ) VALUES (?);";
+		String insertStatement = "INSERT INTO `crawler`.`results` ( `Hanzi` ) VALUES (?);";
 		try {
 
 			conn.setAutoCommit(false);

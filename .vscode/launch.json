@@ -13,10 +13,10 @@
         },
         {
             "type": "java",
-            "name": "Launch HanzeSpider",
+            "name": "Launch HanziSpider",
             "request": "launch",
-            "mainClass": "de.brainschweig.hanzespider.HanzeSpider",
-            "projectName": "HanzeSpider",
+            "mainClass": "de.brainschweig.Hanzispider.HanziSpider",
+            "projectName": "HanziSpider",
             "env": {
                  "DB_CONNECTION_STRING": "jdbc:mysql://172.20.0.2/crawler?user=crawler&password=crawlerX",
                  "WEBHANDLER": "JSoup",

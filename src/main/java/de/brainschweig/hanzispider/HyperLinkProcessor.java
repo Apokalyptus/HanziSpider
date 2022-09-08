@@ -1,4 +1,4 @@
-package de.brainschweig.hanzespider;
+package de.brainschweig.Hanzispider;
 
 import java.net.MalformedURLException;
 import java.net.URL;
