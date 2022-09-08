@@ -28,7 +28,7 @@ SET time_zone = "+00:00";
 --
 
 CREATE TABLE `results` (
-  `hanze` varchar(2048) NOT NULL
+  `Hanzi` varchar(2048) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 --
@@ -39,7 +39,7 @@ CREATE TABLE `results` (
 -- Indizes für die Tabelle `results`
 --
 ALTER TABLE `results`
-  ADD UNIQUE KEY `hanze` (`hanze`) USING HASH;
+  ADD UNIQUE KEY `Hanzi` (`Hanzi`) USING HASH;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

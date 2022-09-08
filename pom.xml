@@ -1,10 +1,10 @@
 <project>
   <modelVersion>4.0.0</modelVersion>
-  <groupId>de.brainschweig.hanzespider</groupId>
-  <artifactId>HanzeSpider</artifactId>
+  <groupId>de.brainschweig.Hanzispider</groupId>
+  <artifactId>HanziSpider</artifactId>
   <!-- <packaging>jar</packaging> -->
   <version>1.0-SNAPSHOT</version>
-  <name>HanzeSpider</name>
+  <name>HanziSpider</name>
   <url>http://maven.apache.org</url>
   <build>
     <plugins>
@@ -16,7 +16,7 @@
           <archive>
             <manifest>
               <addClasspath>true</addClasspath>
-              <mainClass>de.brainschweig.hanzespider.HanzeSpider</mainClass>
+              <mainClass>de.brainschweig.Hanzispider.HanziSpider</mainClass>
             </manifest>
           </archive>
           <descriptorRefs>
