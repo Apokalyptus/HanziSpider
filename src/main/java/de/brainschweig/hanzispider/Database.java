@@ -7,19 +7,27 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
+import com.fasterxml.classmate.AnnotationConfiguration;
+
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.*;
+import java.time.Instant;
+import java.util.List;
 import java.util.Set;
 
+import javax.persistence.Query;
+
 import de.brainschweig.hanzispider.entities.Url;
+import de.brainschweig.hanzispider.entities.CrawlResult;
 import de.brainschweig.hanzispider.entities.Status;
 
 public class Database {
 
 	private static final Logger logger = LogManager.getLogger(Database.class.getName());
 	private String connectionString = null;
+	private Session session = null;
 
 	public Database() {
 		setConnectionString(System.getenv("DB_CONNECTION_STRING"));
@@ -36,10 +44,23 @@ public class Database {
 		// configuration.configure("hibernate.cfg.xml");
 		configuration.addAnnotatedClass(Url.class);
 		configuration.addAnnotatedClass(Status.class);
+		configuration.addAnnotatedClass(CrawlResult.class);
+		configuration.setProperty("hibernate.connection.url", getConnectionString());
+
+		SessionFactory sessionFactory = configuration.buildSessionFactory();
+
+		session = sessionFactory.openSession();
 
 	}
 
-	public void insertCrawlResult(String resultChunk){
+	public void insertCrawlResult(String result){
+		
+		CrawlResult cr = new CrawlResult();
+		cr.setHanzi(result);
+
+		session.beginTransaction();
+		session.save(cr);
+		session.getTransaction().commit();
 
 	}
 
@@ -57,20 +78,58 @@ public class Database {
 	}
 
 	public void storeHyperLinks(Set<String> hyperLinks) {
+		MessageDigest m = null;
+		try{
+			m = MessageDigest.getInstance("MD5");
+		} catch (NoSuchAlgorithmException nsae){
+			logger.error("what the heck");
+		}
+
+		for (String hyperLink : hyperLinks) {
+
+			m.update(hyperLink.getBytes(), 0, hyperLink.length());
+			String md5string = new BigInteger(1, m.digest()).toString(16);
+
+			if (doesMd5Exist(md5string))
+					continue;
+
+			Url ul = new Url();
+			ul.setUrl(hyperLink);
+			ul.setMd5Sum(md5string);
+			ul.setMTimeStamp(java.sql.Timestamp.from(Instant.now()));
+
+			session.beginTransaction();
+			session.save(ul);
+			session.getTransaction().commit();
+
+			logger.info("Inserted: Hyperlink: {} MD%: {}", hyperLink, md5string);
+		}
 
 	}
 
 	private boolean doesMd5Exist(String md5sum) {
-		return true;
+		String hql = "SELECT count(md5sum) md5count FROM url WHERE md5sum = :md5sum";
+		Query q = session.createQuery(hql).setParameter("md5sum", md5sum);
+		List<Integer> list = q.getResultList();
+
+		return list.get(0) > 0;
 
 	}
 
-	// synchronized
+
+	// synchronize.f
 	public void fetchHyperLink(StringBuilder sUrlid, StringBuilder url) {
 
 	}
 
 	public void insertHyperLinkStatus(int urlid, String status) {
-
+		Status st = new Status();
+		st.setUrlId(urlid);
+		st.setStatus(status);
+		st.setMTimeStamp(java.sql.Timestamp.from(Instant.now()));
+		
+		session.beginTransaction();
+		session.save(st);
+		session.getTransaction().commit();
 	}
 }

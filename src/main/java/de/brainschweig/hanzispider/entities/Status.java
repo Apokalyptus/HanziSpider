@@ -26,7 +26,7 @@ public class Status {
     private int idstatus;
 
     @Column(name = "url_idurl")
-    private int urlIdUrl;
+    private int urlId;
 
     @Column(name = "status")
     private String status;
@@ -42,12 +42,12 @@ public class Status {
         this.idstatus = idstatus;
     }
 
-    public int getUrlIdUrl() {
-        return this.urlIdUrl;
+    public int getUrlId() {
+        return this.urlId;
     }
 
-    public void setUrlIdUrl(int urlIdUrl) {
-        this.urlIdUrl = urlIdUrl;
+    public void setUrlId(int urlId) {
+        this.urlId = urlId;
     }
 
     public String getStatus() {
