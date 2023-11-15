@@ -1,4 +1,4 @@
-package de.brainschweig.Hanzispider;
+package de.brainschweig.hanzispider;
 
 import java.util.LinkedList;
 import java.util.Queue;
@@ -50,7 +50,7 @@ public class OutputHandlerDatabase implements IOutputHandler {
 				if (resultChunk.isEmpty()) {
 					continue;
 				}
-				Database.insertCrawlResult(resultChunk);
+				//Database.insertCrawlResult(resultChunk);
 				logger.info("Result written to Database");
 			}
 
