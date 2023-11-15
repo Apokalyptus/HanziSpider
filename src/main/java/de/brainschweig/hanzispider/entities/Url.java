@@ -26,7 +26,7 @@ public class Url {
     @Column(name = "url", columnDefinition = "TEXT")
     private String url;
 
-    @Column(name = "md5sum", length = 45)
+    @Column(name = "md5sum", length = 45, unique=true)
     private String md5sum;
 
     @Column(name = "mtimestamp")
