@@ -3,3 +3,4 @@ merker
 .vscode/settings.json
 bin/
 logs/*
+src/main/java/de/brainschweig/hanzispider/Database copy

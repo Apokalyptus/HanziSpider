@@ -1,4 +1,4 @@
-package de.brainschweig.Hanzispider;
+package de.brainschweig.hanzispider;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -12,13 +12,17 @@ public class TextProcessor {
 
 	static final Logger logger = LogManager.getLogger(TextProcessor.class.getName());
 
+	private TextProcessor() {
+		throw new IllegalStateException("Utility class");
+	}
+
 	public static StringBuilder processText(StringBuilder bodyContent) {
 		String carriageReturn = "%n";
 		carriageReturn = String.format(carriageReturn);
 		Set<String> newStringList = null;
 
-		logger.info("length: " + bodyContent.length());
-		logger.info("before: " + bodyContent);
+		logger.info("length: {}", bodyContent.length());
+		logger.info("before: {}", bodyContent);
 
 		if (bodyContent.length() == 0) {
 			logger.info("bodyContent length zero. Skip!");
@@ -33,9 +37,9 @@ public class TextProcessor {
 			}
 		}
 
-		String lines[] = bodyContent.toString().split("\\r?\\n");
+		String[] lines = bodyContent.toString().split("\\r?\\n");
 
-		newStringList = new HashSet<String>(Arrays.asList(lines));
+		newStringList = new HashSet<>(Arrays.asList(lines));
 		Iterator<String> newStringListIterator = newStringList.iterator();
 		while (newStringListIterator.hasNext()) {
 			if (newStringListIterator.next().trim().isEmpty()) {
@@ -55,7 +59,7 @@ public class TextProcessor {
 		}
 
 		bodyContent = newBodyContent;
-		logger.info("after:" + bodyContent);
+		logger.info("after: {}", bodyContent);
 		return bodyContent;
 
 	}
