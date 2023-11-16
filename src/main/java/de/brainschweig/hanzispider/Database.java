@@ -20,7 +20,7 @@ import java.util.Set;
 import javax.persistence.Query;
 
 import de.brainschweig.hanzispider.entities.Url;
-import de.brainschweig.hanzispider.entities.CrawlResult;
+import de.brainschweig.hanzispider.entities.Result;
 import de.brainschweig.hanzispider.entities.Status;
 
 public class Database {
@@ -44,8 +44,9 @@ public class Database {
 		// configuration.configure("hibernate.cfg.xml");
 		configuration.addAnnotatedClass(Url.class);
 		configuration.addAnnotatedClass(Status.class);
-		configuration.addAnnotatedClass(CrawlResult.class);
+		configuration.addAnnotatedClass(Result.class);
 		configuration.setProperty("hibernate.connection.url", getConnectionString());
+		configuration.setProperty("hibernate.hbm2ddl.auto", "create");
 
 		SessionFactory sessionFactory = configuration.buildSessionFactory();
 
@@ -53,9 +54,9 @@ public class Database {
 
 	}
 
-	public void insertCrawlResult(String result){
+	public void insertResult(String result){
 		
-		CrawlResult cr = new CrawlResult();
+		Result cr = new Result();
 		cr.setHanzi(result);
 
 		session.beginTransaction();
@@ -108,9 +109,9 @@ public class Database {
 	}
 
 	private boolean doesMd5Exist(String md5sum) {
-		String hql = "SELECT count(md5sum) md5count FROM url WHERE md5sum = :md5sum";
+		String hql = "SELECT count(md5sum) as md5count FROM Url WHERE md5sum = :md5sum";
 		Query q = session.createQuery(hql).setParameter("md5sum", md5sum);
-		List<Integer> list = q.getResultList();
+		List<Long> list = q.getResultList();
 
 		return list.get(0) > 0;
 
