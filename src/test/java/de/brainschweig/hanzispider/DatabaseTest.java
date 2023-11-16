@@ -19,13 +19,13 @@ class DatabaseTest {
 
     @Test                                               
     @DisplayName("Insert Crawl Result")   
-    void testInsertCrawlResult() {
-        database.insertCrawlResult("Ni Hao!");  
+    void testInsertResult() {
+        database.insertResult("Ni Hao!");  
     }
 
     @Test                             
     @DisplayName("Insert a list of hyperlinks to Database")
-    void testMultiplyWithZero() {
+    void testStoreHyperLinks() {
         Set<String> stringSet = new HashSet<String>();
         stringSet.add("Hallo eins");
         stringSet.add("Hallo zwei");

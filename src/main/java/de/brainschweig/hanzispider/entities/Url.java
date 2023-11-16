@@ -21,7 +21,7 @@ public class Url {
     @Id
     @Column(name = "idurl")
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private int idurl;
+    private Long idurl;
 
     @Column(name = "url", columnDefinition = "TEXT")
     private String url;
@@ -32,11 +32,11 @@ public class Url {
     @Column(name = "mtimestamp")
     private java.sql.Timestamp mtimestamp;
 
-    public int getIdUrl() {
+    public Long getIdUrl() {
         return this.idurl;
     }
 
-    public void setIdStatus(int idurl) {
+    public void setIdUrl(Long idurl) {
         this.idurl = idurl;
     }
 
