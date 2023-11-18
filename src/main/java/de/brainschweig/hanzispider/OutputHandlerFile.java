@@ -73,7 +73,6 @@ public class OutputHandlerFile implements IOutputHandler {
 
 			} catch (IOException | NullPointerException e) {
 				logger.error("IOException: {}", e.toString());
-				e.printStackTrace();
 			}
 		}
 	}
@@ -83,8 +82,6 @@ public class OutputHandlerFile implements IOutputHandler {
 			Thread.sleep(ms);
 		} catch (InterruptedException e) {
 			logger.error("Failed to sleep {} ms: {}", ms, e);
-			e.printStackTrace();
-
 		}
 	}
 
