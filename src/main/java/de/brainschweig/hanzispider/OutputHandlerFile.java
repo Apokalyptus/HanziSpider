@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -17,52 +18,45 @@ import de.brainschweig.interfaces.IOutputHandler;
 
 public class OutputHandlerFile implements IOutputHandler {
 
-	static private String homeDirectory = System.getProperty("user.home");
+	private static String homeDirectory = System.getProperty("user.home");
 
-	static private String outputFileFolder = homeDirectory + File.separator + ".HanziSpider/out";
-	static private Queue<String> buffer = new LinkedList<String>();
-	static private int fileSize = 1024 * 100;
+	private static String outputFileFolder = homeDirectory + File.separator + ".HanziSpider/out";
+	private static Queue<String> bufferList = new LinkedList<>();
+	private static int fileSize = 1024 * 100;
 
 	static final Logger logger = LogManager.getLogger(OutputHandlerFile.class.getName());
 
-	private final String name = "File";
+	private static final String NAME = "File";
 
 	public String getName() {
-		return name;
+		return NAME;
 	}
 
 	public synchronized void addToBuffer(String bodyContent) {
-		buffer.add(bodyContent);
+		bufferList.add(bodyContent);
 	}
 
 	public synchronized String getBuffer() {
-		return buffer.poll();
+		return bufferList.poll();
 	}
 
 	@Override
 	public void run() {
-		while (true) {
+		boolean goOn = true;
+		while (goOn) {
 			StringBuilder buffer = new StringBuilder();
 
 			do {
 				String next = getBuffer();
 				if (null == next || next.isEmpty()) {
-					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException e) {
-
-						e.printStackTrace();
-					}
+					waitMs(1000);
 					continue;
 				}
 				buffer.append(next);
-				logger.info("Data consumed and added. Buffersize now: " + buffer.length());
+				logger.info("Data consumed and added. Buffersize now: {}", buffer.length());
 
-				try {
-					Thread.sleep(100);
-				} catch (InterruptedException e) {
-					logger.error("Failed to sleep 1000ms", e);
-				}
+				waitMs(100);
+
 			} while (buffer.length() < fileSize);
 
 			Writer out = null;
@@ -71,24 +65,25 @@ public class OutputHandlerFile implements IOutputHandler {
 
 			try {
 				out = new BufferedWriter(new OutputStreamWriter(
-						new FileOutputStream(outputFileFolder + File.separator + fileName), "UTF-8"));
+						new FileOutputStream(outputFileFolder.concat(File.separator).concat(fileName)),
+						StandardCharsets.UTF_8));
 				out.write(buffer.toString());
+				out.close();
+				logger.info("Written to file: '{}'", fileName);
 
-			} catch (IOException e) {
-				logger.error("IOException", e);
+			} catch (IOException | NullPointerException e) {
+				logger.error("IOException: {}", e.toString());
 				e.printStackTrace();
 			}
+		}
+	}
 
-			finally {
-				try {
-					out.close();
-				} catch (IOException e) {
-					logger.error("IOException", e);
-					e.printStackTrace();
-				}
-			}
-
-			logger.info("Written to file: '" + fileName + "'");
+	private void waitMs(int ms) {
+		try {
+			Thread.sleep(ms);
+		} catch (InterruptedException e) {
+			logger.error("Failed to sleep {} ms: {}", ms, e);
+			e.printStackTrace();
 
 		}
 	}
