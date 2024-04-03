@@ -20,10 +20,10 @@ public class WebHandlerSelenium implements IWebHandler {
 
 	static final Logger logger = LogManager.getLogger(WebHandlerSelenium.class.getName());
 
-	private static final String name = "Selenium";
+	private static final String NAME = "Selenium";
 
 	public String getName() {
-		return name;
+		return NAME;
 	}
 
 	public void getWebContent(String url, StringBuilder bodyContent, Set<String> hyperLinks, String proxyAddr,
