@@ -14,7 +14,7 @@ import org.openqa.selenium.firefox.FirefoxBinary;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 
-import de.brainschweig.interfaces.IWebHandler;
+import de.brainschweig.hanzispider.interfaces.IWebHandler;
 
 public class WebHandlerSelenium implements IWebHandler {
 
@@ -38,7 +38,7 @@ public class WebHandlerSelenium implements IWebHandler {
 
 		Proxy proxy = new Proxy();
 
-		if (proxyAddr != null && !proxyAddr.isBlank() && proxyPort != null && !proxyPort.isBlank()) {
+		if (proxyAddr != null && !proxyAddr.isEmpty() && proxyPort != null && !proxyPort.isEmpty()) {
 			proxy.setHttpProxy(proxyAddr + ":" + proxyPort);
 			proxy.setSslProxy(proxyAddr + ":" + proxyPort);
 			firefoxOptions.setCapability("proxy", proxy);

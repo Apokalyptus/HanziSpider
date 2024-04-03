@@ -1,4 +1,4 @@
-package de.brainschweig.interfaces;
+package de.brainschweig.hanzispider.interfaces;
 
 
 public interface IOutputHandler extends Runnable {
