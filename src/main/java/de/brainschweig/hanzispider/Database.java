@@ -7,12 +7,9 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
-import com.fasterxml.classmate.AnnotationConfiguration;
-
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.sql.*;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
@@ -66,7 +63,7 @@ public class Database {
 	}
 
 	public void setConnectionString(String connectionString) {
-		if (connectionString == null || connectionString.isBlank()) {
+		if (connectionString == null || connectionString.isEmpty()) {
 			System.out.println("ERROR: Environement Variable DB_CONNECTION_STRING is empty.");
 			logger.error("Environement Variable DB_CONNECTION_STRING is empty.");
 			System.exit(-1);
@@ -78,6 +75,7 @@ public class Database {
 		return this.connectionString;
 	}
 
+	@SuppressWarnings("null")
 	public void storeHyperLinks(Set<String> hyperLinks) {
 		MessageDigest m = null;
 		try{
@@ -111,6 +109,7 @@ public class Database {
 	private boolean doesMd5Exist(String md5sum) {
 		String hql = "SELECT count(md5sum) as md5count FROM Url WHERE md5sum = :md5sum";
 		Query q = session.createQuery(hql).setParameter("md5sum", md5sum);
+		@SuppressWarnings("unchecked")
 		List<Long> list = q.getResultList();
 
 		return list.get(0) > 0;

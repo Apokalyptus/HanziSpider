@@ -14,7 +14,7 @@ import java.util.Queue;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import de.brainschweig.interfaces.IOutputHandler;
+import de.brainschweig.hanzispider.interfaces.IOutputHandler;
 
 public class OutputHandlerFile implements IOutputHandler {
 
