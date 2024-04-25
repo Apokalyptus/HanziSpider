@@ -29,6 +29,7 @@ public class Database {
 	public Database() {
 		setConnectionString(System.getenv("DB_CONNECTION_STRING"));
 		doConfiguration();
+<<<<<<< HEAD
 	}
 
 	public Database(String connectionString) {
@@ -85,6 +86,62 @@ public class Database {
 		}
 
 		for (String hyperLink : hyperLinks) {
+=======
+	}
+
+	public Database(String connectionString) {
+		setConnectionString(connectionString);
+		doConfiguration();
+	}
+
+	private void doConfiguration() {
+		Configuration configuration = new Configuration();
+		// configuration.configure("hibernate.cfg.xml");
+		configuration.addAnnotatedClass(Url.class);
+		configuration.addAnnotatedClass(Status.class);
+		configuration.addAnnotatedClass(Result.class);
+		configuration.setProperty("hibernate.connection.url", getConnectionString());
+		configuration.setProperty("hibernate.hbm2ddl.auto", "create");
+
+		SessionFactory sessionFactory = configuration.buildSessionFactory();
+
+		session = sessionFactory.openSession();
+
+	}
+
+	public void insertResult(String result){
+		
+		Result cr = new Result();
+		cr.setHanzi(result);
+
+		session.beginTransaction();
+		session.save(cr);
+		session.getTransaction().commit();
+
+	}
+
+	public void setConnectionString(String connectionString) {
+		if (connectionString == null || connectionString.isEmpty()) {
+			System.out.println("ERROR: Environement Variable DB_CONNECTION_STRING is empty.");
+			logger.error("Environement Variable DB_CONNECTION_STRING is empty.");
+			System.exit(-1);
+		}
+		this.connectionString = connectionString;
+	}
+
+	public String getConnectionString() {
+		return this.connectionString;
+	}
+
+	@SuppressWarnings("null")
+	public void storeHyperLinks(Set<String> hyperLinks) {
+		MessageDigest m = null;
+		try{
+			m = MessageDigest.getInstance("MD5");
+		} catch (NoSuchAlgorithmException nsae){
+			logger.error("what the heck");
+		}
+>>>>>>> c18b80e (Merged Hibernate and Modular)
 
 			m.update(hyperLink.getBytes(), 0, hyperLink.length());
 			String md5string = new BigInteger(1, m.digest()).toString(16);
@@ -103,6 +160,7 @@ public class Database {
 
 			logger.info("Inserted: Hyperlink: {} MD%: {}", hyperLink, md5string);
 		}
+<<<<<<< HEAD
 
 	}
 
@@ -131,5 +189,139 @@ public class Database {
 		session.beginTransaction();
 		session.save(st);
 		session.getTransaction().commit();
+=======
+
+	
+	}
+
+	private static boolean doesMd5Exist(String md5sum) {
+
+		// PreparedStatement ps = null;
+		// ResultSet rs;
+		 int md5count = 0;
+		// try {
+
+		// 	String selectStatement = "SELECT count(md5sum) md5count FROM url WHERE md5sum = ?";
+		// 	ps = conn.prepareStatement(selectStatement);
+		// 	ps.setString(1, md5sum);
+
+		// 	rs = ps.executeQuery();
+		// 	rs.next();
+		// 	md5count = rs.getInt("md5count");
+
+		// 	rs.close();
+		// 	ps.close();
+
+		// } catch (SQLException e) {
+		// 	logger.error("Executing Query went wrong: ", e);
+		// }
+
+		return md5count > 0;
+	}
+
+	// synchronized
+	static synchronized boolean fetchHyperLink(StringBuilder sUrlid, StringBuilder url) {
+		// PreparedStatement insertStatus = null;
+		// Statement stmt;
+		// ResultSet rs;
+		// int urlid = -1;
+
+		// String selectStatement = "SELECT u.idurl, u.url, s.status FROM url u LEFT JOIN status s ON (u.idurl = s.url_idurl) WHERE s.status IS NULL LIMIT 1;";
+		// String insertStatement = "INSERT INTO `crawler`.`status` ( `url_idurl`, `status`, `mtimestamp`, `mtime`) VALUES (?, ?, NOW(), NOW());";
+
+		// try {
+		// 	conn.setAutoCommit(false);
+
+		// 	stmt = conn.createStatement();
+
+		// 	rs = stmt.executeQuery(selectStatement);
+		// 	if (!rs.next()) {
+		// 		logger.error("Got no ResultSet from Database - No HyperLinks without status available.");
+		// 		return false;
+		// 	} else {
+		// 		logger.debug("got Resultset from Database - Found Hyperlinks without status");
+		// 	}
+
+		// 	urlid = rs.getInt("idurl");
+		// 	url.append(rs.getString("url"));
+		// 	rs.close();
+
+		// 	logger.info("Fetch urlid: " + urlid + " url: " + url);
+
+		// 	insertStatus = conn.prepareStatement(insertStatement);
+		// 	insertStatus.setInt(1, urlid);
+		// 	insertStatus.setString(2, "check-out");
+		// 	insertStatus.executeUpdate();
+		// 	conn.commit();
+
+		// 	rs.close();
+		// 	insertStatus.close();
+
+		// 	logger.info("Insert Status urlid: " + urlid + " Status: check-out");
+		// 	sUrlid.append(String.valueOf(urlid));
+
+		// } catch (SQLException e) {
+		// 	logger.error("Executing Query went wrong:", e);
+
+		// }
+		return true;
+
+	}
+
+	static void insertHyperLinkStatus(int urlid, String status) {
+		// PreparedStatement insertUrl = null;
+		// String insertStatement = "INSERT INTO `crawler`.`status` ( `url_idurl`, `status`, `mtimestamp`, `mtime`) VALUES (?, ?, NOW(), NOW());";
+		// try {
+
+		// 	conn.setAutoCommit(false);
+
+		// 	insertUrl = conn.prepareStatement(insertStatement);
+		// 	insertUrl.setInt(1, urlid);
+		// 	insertUrl.setString(2, status);
+		// 	insertUrl.executeUpdate();
+		// 	conn.commit();
+
+		// 	insertUrl.close();
+
+		// 	logger.info("Insert Status urlid: " + urlid + " Status: " + status);
+
+		// } catch (SQLException e) {
+		// 	logger.error("Executing Query went wrong:", e);
+		// 	try {
+		// 		conn.rollback();
+		// 	} catch (SQLException e1) {
+		// 		logger.error("Rollback went wrong", e1);
+
+		// 	}
+		// }
+	}
+
+	static void insertCrawlResult(String result) {
+		// PreparedStatement insertResult = null;
+		// String insertStatement = "INSERT INTO `crawler`.`results` ( `Hanzi` ) VALUES (?);";
+		// try {
+
+		// 	conn.setAutoCommit(false);
+
+		// 	insertResult = conn.prepareStatement(insertStatement);
+
+		// 	insertResult.setString(1, result);
+		// 	insertResult.executeUpdate();
+		// 	conn.commit();
+
+		// 	insertResult.close();
+
+		// 	logger.info("Insert Result: " + result);
+
+		// } catch (SQLException e) {
+		// 	logger.error("Executing Query went wrong:", e);
+		// 	try {
+		// 		conn.rollback();
+		// 	} catch (SQLException e1) {
+		// 		logger.error("Rollback went wrong", e1);
+
+		// 	}
+		// }
+>>>>>>> c18b80e (Merged Hibernate and Modular)
 	}
 }

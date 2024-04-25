@@ -29,6 +29,7 @@ public class ProcessLoop implements Runnable {
 				try {
 					urlid = Integer.parseInt(sUrlid.toString());
 				} catch (NumberFormatException ex) {
+<<<<<<< HEAD
 					continue;
 				}
 
@@ -37,15 +38,49 @@ public class ProcessLoop implements Runnable {
 					continue;
 				}
 
+=======
+					continue;
+				}
+
+				if (url.length() == 0) {
+					logger.debug("Found URL with length == 0");
+					try {
+						Thread.sleep(5000);
+					} catch (InterruptedException e) {
+						logger.error("Sleeping 1000ms went wrong", e);
+					}
+					continue;
+				}
+
+>>>>>>> c18b80e (Merged Hibernate and Modular)
 				Set<String> hyperLinks = new HashSet<>();
 				StringBuilder bodyContent = new StringBuilder();
 
 				// get webpage
+<<<<<<< HEAD
+=======
+
+				IWebHandler whjs = null;
+
+				if (webHandler == null || webHandler.isEmpty()) {
+					whjs = new WebHandlerJsoup();
+				} else if (webHandler.toLowerCase().equals("JSoup".toLowerCase())) {
+					whjs = new WebHandlerJsoup();
+				} else if (webHandler.toLowerCase().equals("Selenium".toLowerCase())) {
+					whjs = new WebHandlerSelenium();
+				}
+
+>>>>>>> c18b80e (Merged Hibernate and Modular)
 				try {
 					WebHandler.getWebContent(url.toString(), bodyContent, hyperLinks);
 				} catch (IOException e) {
+<<<<<<< HEAD
 					logger.error("Fetching web content from {} }went wrong: {}", url, e);
 					db.insertHyperLinkStatus(urlid, "visited-error");
+=======
+					logger.error("Fetching web content from {} went wrong: {}", url, e);
+					Database.insertHyperLinkStatus(urlid, "visited-error");
+>>>>>>> c18b80e (Merged Hibernate and Modular)
 					continue;
 				}
 				// check hyperlinks against some rules
@@ -65,8 +100,24 @@ public class ProcessLoop implements Runnable {
 				db.insertHyperLinkStatus(urlid, "visited-ok");
 
 				// write to file
+<<<<<<< HEAD
 				logger.info("hyperlinks: {}} BodyContent: {}", hyperLinks.size(), bodyContent.length());
 				OutputFileHandler.add(bodyContent.toString());
+=======
+				logger.info("hyperlinks: {} BodyContent: {}", hyperLinks.size(), bodyContent.length());
+
+				IOutputHandler oh = null;
+
+				if (outputHandler == null || outputHandler.isEmpty()) {
+					oh = new OutputHandlerDatabase();
+				} else if (outputHandler.toLowerCase().equals("MySQLDatabase".toLowerCase())) {
+					oh = new OutputHandlerDatabase();
+				} else if (outputHandler.toLowerCase().equals("File".toLowerCase())) {
+					oh = new OutputHandlerFile();
+				}
+
+				oh.addToBuffer(bodyContent.toString());
+>>>>>>> c18b80e (Merged Hibernate and Modular)
 
 			} catch (Exception ex) {
 				logger.error("Found unhandled exception: ", ex);
