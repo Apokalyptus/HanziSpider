@@ -6,19 +6,51 @@ import java.util.ArrayList;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+<<<<<<< HEAD
+=======
+import de.brainschweig.hanzispider.interfaces.*;
+>>>>>>> c18b80e (Merged Hibernate and Modular)
 
 public class HanziSpider {
 
 	public static void main(String[] args) throws IOException {
 
+<<<<<<< HEAD
 		// Constants
+=======
+		final int MAX_THREADS = 10;
+>>>>>>> c18b80e (Merged Hibernate and Modular)
 		final String DIR_EXISTING = "Directory {} exists";
 		final String HANZISPIDER = "Hanzispider";
 
 		// Start logger
 		final Logger logger = LogManager.getLogger(HanziSpider.class.getName());
+<<<<<<< HEAD
 
 		try {
+=======
+		final String connectionString = System.getenv("DB_CONNECTION_STRING");
+		final String webHandler = System.getenv("WEBHANDLER");
+		final String outputHandler = System.getenv("OUTPUTHANDLER");
+		final String proxy = System.getenv("PROXY");
+		final String proxyPort = System.getenv("PROXYPORT");
+
+		logger.info("DB_CONNECTION_STRING: {}", connectionString);
+		logger.info("WEBHANDLER: {}", webHandler);
+		logger.info("OUTPUTHANDLER: {}", outputHandler);
+		logger.info("PROXY: {}", proxy);
+		logger.info("PROXYPORT: {}", proxyPort);
+
+		if (connectionString == null || connectionString.isEmpty()) {
+			System.out.println("ERROR: Environement Variable DB_CONNECTION_STRING is empty.");
+			logger.error("Environement Variable DB_CONNECTION_STRING is empty.");
+			System.exit(-1);
+		}
+
+		try {
+	
+
+>>>>>>> c18b80e (Merged Hibernate and Modular)
 			// get Home Dir
 
 			String homeDirectory = System.getProperty("user.home");
@@ -56,8 +88,15 @@ public class HanziSpider {
 			List<Thread> lt = new ArrayList<>();
 
 			// Spawn threads
+<<<<<<< HEAD
 			for (int a = 0; a < 5; a++) {
 				lt.add(new Thread(new ProcessLoop(), "Joern-" + a));
+=======
+			for (int a = 0; a < MAX_THREADS; a++) {
+				ProcessLoop pl = new ProcessLoop(webHandler, proxy, proxyPort);
+				pl.setOutputHandler(outputHandler);
+				lt.add(new Thread(pl, "Joern-" + a));
+>>>>>>> c18b80e (Merged Hibernate and Modular)
 				logger.info("Thread 'Joern-{}' spawned.", a);
 
 			}
