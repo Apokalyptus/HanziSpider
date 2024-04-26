@@ -54,11 +54,6 @@ public class OutputHandlerFile implements IOutputHandler {
 				}
 				buffer.append(next);
 				logger.info("Data consumed and added. Buffersize now: {}", buffer.length());
-<<<<<<< HEAD
-
-				waitMs(100);
-=======
->>>>>>> c18b80e (Merged Hibernate and Modular)
 
 			} while (buffer.length() < fileSize);
 
@@ -76,13 +71,7 @@ public class OutputHandlerFile implements IOutputHandler {
 
 			} catch (IOException | NullPointerException e) {
 				logger.error("IOException: {}", e.toString());
-			}
-		}
-	}
-
-<<<<<<< HEAD
-=======
-			finally {
+			} finally {
 				try {
 					out.close();
 				} catch (IOException e) {
@@ -90,8 +79,11 @@ public class OutputHandlerFile implements IOutputHandler {
 					e.printStackTrace();
 				}
 			}
+		}
+	}
 
->>>>>>> c18b80e (Merged Hibernate and Modular)
+			
+
 	private void waitMs(int ms) {
 		try {
 			Thread.sleep(ms);

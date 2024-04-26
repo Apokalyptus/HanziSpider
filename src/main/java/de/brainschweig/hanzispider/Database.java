@@ -29,7 +29,6 @@ public class Database {
 	public Database() {
 		setConnectionString(System.getenv("DB_CONNECTION_STRING"));
 		doConfiguration();
-<<<<<<< HEAD
 	}
 
 	public Database(String connectionString) {
@@ -84,65 +83,8 @@ public class Database {
 		} catch (NoSuchAlgorithmException nsae){
 			logger.error("what the heck");
 		}
-
+		
 		for (String hyperLink : hyperLinks) {
-=======
-	}
-
-	public Database(String connectionString) {
-		setConnectionString(connectionString);
-		doConfiguration();
-	}
-
-	private void doConfiguration() {
-		Configuration configuration = new Configuration();
-		// configuration.configure("hibernate.cfg.xml");
-		configuration.addAnnotatedClass(Url.class);
-		configuration.addAnnotatedClass(Status.class);
-		configuration.addAnnotatedClass(Result.class);
-		configuration.setProperty("hibernate.connection.url", getConnectionString());
-		configuration.setProperty("hibernate.hbm2ddl.auto", "create");
-
-		SessionFactory sessionFactory = configuration.buildSessionFactory();
-
-		session = sessionFactory.openSession();
-
-	}
-
-	public void insertResult(String result){
-		
-		Result cr = new Result();
-		cr.setHanzi(result);
-
-		session.beginTransaction();
-		session.save(cr);
-		session.getTransaction().commit();
-
-	}
-
-	public void setConnectionString(String connectionString) {
-		if (connectionString == null || connectionString.isEmpty()) {
-			System.out.println("ERROR: Environement Variable DB_CONNECTION_STRING is empty.");
-			logger.error("Environement Variable DB_CONNECTION_STRING is empty.");
-			System.exit(-1);
-		}
-		this.connectionString = connectionString;
-	}
-
-	public String getConnectionString() {
-		return this.connectionString;
-	}
-
-	@SuppressWarnings("null")
-	public void storeHyperLinks(Set<String> hyperLinks) {
-		MessageDigest m = null;
-		try{
-			m = MessageDigest.getInstance("MD5");
-		} catch (NoSuchAlgorithmException nsae){
-			logger.error("what the heck");
-		}
->>>>>>> c18b80e (Merged Hibernate and Modular)
-
 			m.update(hyperLink.getBytes(), 0, hyperLink.length());
 			String md5string = new BigInteger(1, m.digest()).toString(16);
 
@@ -160,25 +102,21 @@ public class Database {
 
 			logger.info("Inserted: Hyperlink: {} MD%: {}", hyperLink, md5string);
 		}
-<<<<<<< HEAD
 
 	}
 
-	private boolean doesMd5Exist(String md5sum) {
+	
+	boolean doesMd5Exist(String md5sum) {
 		String hql = "SELECT count(md5sum) as md5count FROM Url WHERE md5sum = :md5sum";
 		Query q = session.createQuery(hql).setParameter("md5sum", md5sum);
 		@SuppressWarnings("unchecked")
 		List<Long> list = q.getResultList();
 
+
 		return list.get(0) > 0;
 
 	}
 
-
-	// synchronize.f
-	public void fetchHyperLink(StringBuilder sUrlid, StringBuilder url) {
-
-	}
 
 	public void insertHyperLinkStatus(int urlid, String status) {
 		Status st = new Status();
@@ -189,35 +127,8 @@ public class Database {
 		session.beginTransaction();
 		session.save(st);
 		session.getTransaction().commit();
-=======
-
-	
 	}
 
-	private static boolean doesMd5Exist(String md5sum) {
-
-		// PreparedStatement ps = null;
-		// ResultSet rs;
-		 int md5count = 0;
-		// try {
-
-		// 	String selectStatement = "SELECT count(md5sum) md5count FROM url WHERE md5sum = ?";
-		// 	ps = conn.prepareStatement(selectStatement);
-		// 	ps.setString(1, md5sum);
-
-		// 	rs = ps.executeQuery();
-		// 	rs.next();
-		// 	md5count = rs.getInt("md5count");
-
-		// 	rs.close();
-		// 	ps.close();
-
-		// } catch (SQLException e) {
-		// 	logger.error("Executing Query went wrong: ", e);
-		// }
-
-		return md5count > 0;
-	}
 
 	// synchronized
 	static synchronized boolean fetchHyperLink(StringBuilder sUrlid, StringBuilder url) {
@@ -268,7 +179,7 @@ public class Database {
 
 	}
 
-	static void insertHyperLinkStatus(int urlid, String status) {
+	//static void insertHyperLinkStatus(int urlid, String status) {
 		// PreparedStatement insertUrl = null;
 		// String insertStatement = "INSERT INTO `crawler`.`status` ( `url_idurl`, `status`, `mtimestamp`, `mtime`) VALUES (?, ?, NOW(), NOW());";
 		// try {
@@ -294,7 +205,7 @@ public class Database {
 
 		// 	}
 		// }
-	}
+	//}
 
 	static void insertCrawlResult(String result) {
 		// PreparedStatement insertResult = null;
@@ -322,6 +233,5 @@ public class Database {
 
 		// 	}
 		// }
->>>>>>> c18b80e (Merged Hibernate and Modular)
 	}
 }
