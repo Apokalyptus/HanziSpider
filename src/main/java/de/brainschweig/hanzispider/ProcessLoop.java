@@ -7,9 +7,64 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import de.brainschweig.hanzispider.interfaces.*;
+
 public class ProcessLoop implements Runnable {
 
 	static final Logger logger = LogManager.getLogger(ProcessLoop.class.getName());
+
+	private String webHandler = null;
+
+	private String outputHandler = null;
+
+	private String proxyAddr = null;
+
+	private String proxyPort = null;
+
+	public String getOutputHandler() {
+		return outputHandler;
+	}
+
+	public void setOutputHandler(String outputHandler) {
+		this.outputHandler = outputHandler;
+	}
+
+	public String getProxyAddr() {
+		return proxyAddr;
+	}
+
+	public void setProxyAddr(String proxyAddr) {
+		this.proxyAddr = proxyAddr;
+	}
+
+	public String getProxyPort() {
+		return proxyPort;
+	}
+
+	public void setProxyPort(String proxyPort) {
+		this.proxyPort = proxyPort;
+	}
+
+	public String getWebHandler() {
+		return webHandler;
+	}
+
+	public void setWebHandler(String webHandler) {
+		this.webHandler = webHandler;
+	}
+
+	public ProcessLoop() {
+	}
+
+	public ProcessLoop(String webHandler) {
+		this.webHandler = webHandler;
+	}
+
+	public ProcessLoop(String webHandler, String proxyAddr, String proxyPort) {
+		this.webHandler = webHandler;
+		this.proxyAddr = proxyAddr;
+		this.proxyPort = proxyPort;
+	}
 
 	@Override
 	public void run() {
@@ -24,21 +79,11 @@ public class ProcessLoop implements Runnable {
 				int urlid = 0;
 
 				Database db = new Database();
-				db.fetchHyperLink(sUrlid, url);
+				Database.fetchHyperLink(sUrlid, url);
 
 				try {
 					urlid = Integer.parseInt(sUrlid.toString());
 				} catch (NumberFormatException ex) {
-<<<<<<< HEAD
-					continue;
-				}
-
-				if (url.length() == 0) {
-					Thread.sleep(5000);
-					continue;
-				}
-
-=======
 					continue;
 				}
 
@@ -52,13 +97,10 @@ public class ProcessLoop implements Runnable {
 					continue;
 				}
 
->>>>>>> c18b80e (Merged Hibernate and Modular)
 				Set<String> hyperLinks = new HashSet<>();
 				StringBuilder bodyContent = new StringBuilder();
 
 				// get webpage
-<<<<<<< HEAD
-=======
 
 				IWebHandler whjs = null;
 
@@ -70,17 +112,11 @@ public class ProcessLoop implements Runnable {
 					whjs = new WebHandlerSelenium();
 				}
 
->>>>>>> c18b80e (Merged Hibernate and Modular)
 				try {
 					WebHandler.getWebContent(url.toString(), bodyContent, hyperLinks);
 				} catch (IOException e) {
-<<<<<<< HEAD
-					logger.error("Fetching web content from {} }went wrong: {}", url, e);
-					db.insertHyperLinkStatus(urlid, "visited-error");
-=======
 					logger.error("Fetching web content from {} went wrong: {}", url, e);
-					Database.insertHyperLinkStatus(urlid, "visited-error");
->>>>>>> c18b80e (Merged Hibernate and Modular)
+					db.insertHyperLinkStatus(urlid, "visited-error");
 					continue;
 				}
 				// check hyperlinks against some rules
@@ -100,10 +136,6 @@ public class ProcessLoop implements Runnable {
 				db.insertHyperLinkStatus(urlid, "visited-ok");
 
 				// write to file
-<<<<<<< HEAD
-				logger.info("hyperlinks: {}} BodyContent: {}", hyperLinks.size(), bodyContent.length());
-				OutputFileHandler.add(bodyContent.toString());
-=======
 				logger.info("hyperlinks: {} BodyContent: {}", hyperLinks.size(), bodyContent.length());
 
 				IOutputHandler oh = null;
@@ -117,7 +149,6 @@ public class ProcessLoop implements Runnable {
 				}
 
 				oh.addToBuffer(bodyContent.toString());
->>>>>>> c18b80e (Merged Hibernate and Modular)
 
 			} catch (Exception ex) {
 				logger.error("Found unhandled exception: ", ex);
