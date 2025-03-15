@@ -17,16 +17,16 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
-import de.brainschweig.interfaces.IWebHandler;
+import de.brainschweig.hanzispider.interfaces.IWebHandler;
 
 public class WebHandlerJsoup implements IWebHandler {
 
 	static final Logger logger = LogManager.getLogger(WebHandlerJsoup.class.getName());
 
-	private static final String name = "JSoup";
+	private static final String NAME = "JSoup";
 
 	public String getName() {
-		return name;
+		return NAME;
 	}
 
 	public void getWebContent(String url, StringBuilder bodyContent, Set<String> hyperLinks, String proxyAddr,
@@ -34,7 +34,7 @@ public class WebHandlerJsoup implements IWebHandler {
 
 		Document doc = null;
 
-		if (proxyAddr == null || proxyAddr.isBlank() || proxyPort == null || proxyPort.isBlank()) {
+		if (proxyAddr == null || proxyAddr.isEmpty() || proxyPort == null || proxyPort.isEmpty()) {
 			doc = Jsoup.connect(url).timeout(15 * 1000)
 					.userAgent(
 							"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.2 (KHTML, like Gecko) Chrome/15.0.874.120 Safari/535.2")
