@@ -24,6 +24,10 @@ public class OutputHandlerDatabase implements IOutputHandler {
 		buffer.add(bodyContent);
 	}
 
+	public static synchronized void addToBufferStatic(String bodyContent) {
+		buffer.add(bodyContent);
+	}
+
 	public synchronized String getBuffer() {
 		return buffer.poll();
 	}
