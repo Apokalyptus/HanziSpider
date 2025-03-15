@@ -66,7 +66,7 @@ public class ProcessLoop implements Runnable {
 
 				// write to file
 				logger.info("hyperlinks: {}} BodyContent: {}", hyperLinks.size(), bodyContent.length());
-				OutputFileHandler.add(bodyContent.toString());
+				OutputHandlerFile.addToBuffer(bodyContent.toString());
 
 			} catch (Exception ex) {
 				logger.error("Found unhandled exception: ", ex);

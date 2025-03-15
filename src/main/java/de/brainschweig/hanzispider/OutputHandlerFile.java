@@ -32,7 +32,7 @@ public class OutputHandlerFile implements IOutputHandler {
 		return NAME;
 	}
 
-	public synchronized void addToBuffer(String bodyContent) {
+	public static synchronized void addToBuffer(String bodyContent) {
 		bufferList.add(bodyContent);
 	}
 
