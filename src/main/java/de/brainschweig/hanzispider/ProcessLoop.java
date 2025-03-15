@@ -102,7 +102,7 @@ public class ProcessLoop implements Runnable {
 
 				// get webpage
 
-				IWebHandler whjs = null;
+				IWebHandler whjs;
 
 				switch (webHandler == null ? "" : webHandler.toLowerCase()) {
 					case "":
