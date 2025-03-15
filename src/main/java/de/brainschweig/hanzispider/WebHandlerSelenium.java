@@ -56,7 +56,7 @@ public class WebHandlerSelenium implements IWebHandler {
 		}
 
 		bodyContent.append(driver.findElement(By.tagName("body")).getText());
-		if (null == bodyContent || bodyContent.length() == 0) {
+		if ((bodyContent == null) || bodyContent.isEmpty()) {
 			logger.error("Web-Document not valid!!!");
 		}
 

@@ -30,27 +30,15 @@ public class HanziSpider {
 
 			// Create ~/.HanziSpider if not exists
 			File f = new File(destinationDirectory);
-			if (f.exists() && f.isDirectory()) {
-				logger.info(DIR_EXISTING, destinationDirectory);
-			} else {
-				createDir(logger, destinationDirectory, f);
-			}
+			checkForExistanceOrCreate(DIR_EXISTING, logger, destinationDirectory, f);
 
 			File fl = new File(logDirectory);
-			if (fl.exists() && fl.isDirectory()) {
-				logger.info(DIR_EXISTING, logDirectory);
-			} else {
-				createDir(logger, logDirectory, fl);
-			}
+			checkForExistanceOrCreate(DIR_EXISTING, logger, logDirectory, fl);
 
 			File fo = new File(outDirectory);
-			if (fo.exists() && fo.isDirectory()) {
-				logger.info(DIR_EXISTING, outDirectory);
-			} else {
-				createDir(logger, outDirectory, fo);
-			}
+			checkForExistanceOrCreate(DIR_EXISTING, logger, outDirectory, fo);
 
-			Thread ofh = new Thread(new OutputFileHandler(), "OutFileHandler");
+			Thread ofh = new Thread(new OutputHandlerFile(), "OutFileHandler");
 			ofh.start();
 
 			List<Thread> lt = new ArrayList<>();
@@ -72,6 +60,14 @@ public class HanziSpider {
 
 		} catch (Exception ex) {
 			logger.error("Found Unhandled exception", ex);
+		}
+	}
+
+	private static void checkForExistanceOrCreate(final String DIR_EXISTING, final Logger logger, String destinationDirectory, File f) {
+		if (f.exists() && f.isDirectory()) {
+			logger.info(DIR_EXISTING, destinationDirectory);
+		} else {
+			createDir(logger, destinationDirectory, f);
 		}
 	}
 

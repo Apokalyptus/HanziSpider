@@ -1,0 +1,33 @@
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 295B done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/openjdk:23
+#2 DONE 0.4s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [1/3] FROM docker.io/library/openjdk:23@sha256:fd0f3721ad4abbfe393ac1a2672abf4b7f53b5ecd9803a4e2444aa3acd7d398e
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 34B done
+#5 DONE 0.0s
+
+#6 [2/3] ADD http://192.168.178.240:8061/repository/raw/HanziSpider/HanziSpider-1.0-SNAPSHOT-jar-with-dependencies.jar HanziSpider-1.0-SNAPSHOT-jar-with-dependencies.jar
+#6 DONE 0.1s
+
+#7 [2/3] ADD http://192.168.178.240:8061/repository/raw/HanziSpider/HanziSpider-1.0-SNAPSHOT-jar-with-dependencies.jar HanziSpider-1.0-SNAPSHOT-jar-with-dependencies.jar
+#7 CACHED
+
+#8 [3/3] COPY entrypoint.sh /
+#8 CACHED
+
+#9 exporting to image
+#9 exporting layers done
+#9 writing image sha256:c3b3cc3cd6033c6fa9daca2ae339948e2c4e89322a02fe961ad24cbb44328439 done
+#9 DONE 0.0s
