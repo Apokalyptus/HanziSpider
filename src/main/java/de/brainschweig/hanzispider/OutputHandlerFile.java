@@ -32,7 +32,11 @@ public class OutputHandlerFile implements IOutputHandler {
 		return NAME;
 	}
 
-	public static synchronized void addToBuffer(String bodyContent) {
+	public synchronized void addToBuffer(String bodyContent) {
+		bufferList.add(bodyContent);
+	}
+
+	public static synchronized void addToBufferStatic(String bodyContent) {
 		bufferList.add(bodyContent);
 	}
 
@@ -57,32 +61,19 @@ public class OutputHandlerFile implements IOutputHandler {
 
 			} while (buffer.length() < fileSize);
 
-			Writer out = null;
 			long sfileName = System.currentTimeMillis();
 			String fileName = String.valueOf(sfileName);
 
-			try {
-				out = new BufferedWriter(new OutputStreamWriter(
-						new FileOutputStream(outputFileFolder.concat(File.separator).concat(fileName)),
-						StandardCharsets.UTF_8));
+			try (Writer out = new BufferedWriter(new OutputStreamWriter(
+					new FileOutputStream(outputFileFolder.concat(File.separator).concat(fileName)),
+					StandardCharsets.UTF_8))) {
 				out.write(buffer.toString());
-				out.close();
 				logger.info("Written to file: '{}'", fileName);
-
-			} catch (IOException | NullPointerException e) {
+			} catch (IOException e) {
 				logger.error("IOException: {}", e.toString());
-			} finally {
-				try {
-					out.close();
-				} catch (IOException e) {
-					logger.error("IOException", e);
-					e.printStackTrace();
-				}
 			}
 		}
 	}
-
-			
 
 	private void waitMs(int ms) {
 		try {
