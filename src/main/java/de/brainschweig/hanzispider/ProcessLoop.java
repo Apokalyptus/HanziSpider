@@ -7,9 +7,64 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import de.brainschweig.hanzispider.interfaces.*;
+
 public class ProcessLoop implements Runnable {
 
 	static final Logger logger = LogManager.getLogger(ProcessLoop.class.getName());
+
+	private String webHandler = null;
+
+	private String outputHandler = null;
+
+	private String proxyAddr = null;
+
+	private String proxyPort = null;
+
+	public String getOutputHandler() {
+		return outputHandler;
+	}
+
+	public void setOutputHandler(String outputHandler) {
+		this.outputHandler = outputHandler;
+	}
+
+	public String getProxyAddr() {
+		return proxyAddr;
+	}
+
+	public void setProxyAddr(String proxyAddr) {
+		this.proxyAddr = proxyAddr;
+	}
+
+	public String getProxyPort() {
+		return proxyPort;
+	}
+
+	public void setProxyPort(String proxyPort) {
+		this.proxyPort = proxyPort;
+	}
+
+	public String getWebHandler() {
+		return webHandler;
+	}
+
+	public void setWebHandler(String webHandler) {
+		this.webHandler = webHandler;
+	}
+
+	public ProcessLoop() {
+	}
+
+	public ProcessLoop(String webHandler) {
+		this.webHandler = webHandler;
+	}
+
+	public ProcessLoop(String webHandler, String proxyAddr, String proxyPort) {
+		this.webHandler = webHandler;
+		this.proxyAddr = proxyAddr;
+		this.proxyPort = proxyPort;
+	}
 
 	@Override
 	public void run() {
@@ -24,7 +79,7 @@ public class ProcessLoop implements Runnable {
 				int urlid = 0;
 
 				Database db = new Database();
-				db.fetchHyperLink(sUrlid, url);
+				Database.fetchHyperLink(sUrlid, url);
 
 				try {
 					urlid = Integer.parseInt(sUrlid.toString());
@@ -33,7 +88,12 @@ public class ProcessLoop implements Runnable {
 				}
 
 				if (url.length() == 0) {
-					Thread.sleep(5000);
+					logger.debug("Found URL with length == 0");
+					try {
+						Thread.sleep(5000);
+					} catch (InterruptedException e) {
+						logger.error("Sleeping 1000ms went wrong", e);
+					}
 					continue;
 				}
 
@@ -41,10 +101,28 @@ public class ProcessLoop implements Runnable {
 				StringBuilder bodyContent = new StringBuilder();
 
 				// get webpage
+
+				IWebHandler whjs = null;
+
+				switch (webHandler == null ? "" : webHandler.toLowerCase()) {
+					case "":
+						whjs = new WebHandlerJsoup();
+						break;
+					case "jsoup":
+						whjs = new WebHandlerJsoup();
+						break;
+					case "selenium":
+						whjs = new WebHandlerSelenium();
+						break;
+					default:
+						logger.error("Unknown web handler: {}", webHandler);
+						throw new IllegalArgumentException("Unknown web handler: " + webHandler);
+				}
+
 				try {
 					WebHandler.getWebContent(url.toString(), bodyContent, hyperLinks);
 				} catch (IOException e) {
-					logger.error("Fetching web content from {} }went wrong: {}", url, e);
+					logger.error("Fetching web content from {} went wrong: {}", url, e);
 					db.insertHyperLinkStatus(urlid, "visited-error");
 					continue;
 				}
@@ -65,8 +143,26 @@ public class ProcessLoop implements Runnable {
 				db.insertHyperLinkStatus(urlid, "visited-ok");
 
 				// write to file
-				logger.info("hyperlinks: {}} BodyContent: {}", hyperLinks.size(), bodyContent.length());
-				OutputHandlerFile.addToBuffer(bodyContent.toString());
+				logger.info("hyperlinks: {} BodyContent: {}", hyperLinks.size(), bodyContent.length());
+
+				IOutputHandler oh = null;
+
+				switch (outputHandler == null ? "" : outputHandler.toLowerCase()) {
+					case "":
+						oh = new OutputHandlerDatabase();
+						break;
+					case "mysqldatabase":
+						oh = new OutputHandlerDatabase();
+						break;
+					case "file":
+						oh = new OutputHandlerFile();
+						break;
+					default:
+						logger.error("Unknown output handler: {}", outputHandler);
+						throw new IllegalArgumentException("Unknown output handler: " + outputHandler);
+				}
+
+				oh.addToBuffer(bodyContent.toString());
 
 			} catch (Exception ex) {
 				logger.error("Found unhandled exception: ", ex);

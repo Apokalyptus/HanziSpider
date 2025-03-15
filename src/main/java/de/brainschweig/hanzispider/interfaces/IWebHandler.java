@@ -1,4 +1,4 @@
-package de.brainschweig.interfaces;
+package de.brainschweig.hanzispider.interfaces;
 
 import java.util.Set;
 import java.io.IOException;

@@ -14,7 +14,7 @@ import java.util.Queue;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import de.brainschweig.interfaces.IOutputHandler;
+import de.brainschweig.hanzispider.interfaces.IOutputHandler;
 
 public class OutputHandlerFile implements IOutputHandler {
 
@@ -55,8 +55,6 @@ public class OutputHandlerFile implements IOutputHandler {
 				buffer.append(next);
 				logger.info("Data consumed and added. Buffersize now: {}", buffer.length());
 
-				waitMs(100);
-
 			} while (buffer.length() < fileSize);
 
 			Writer out = null;
@@ -73,9 +71,18 @@ public class OutputHandlerFile implements IOutputHandler {
 
 			} catch (IOException | NullPointerException e) {
 				logger.error("IOException: {}", e.toString());
+			} finally {
+				try {
+					out.close();
+				} catch (IOException e) {
+					logger.error("IOException", e);
+					e.printStackTrace();
+				}
 			}
 		}
 	}
+
+			
 
 	private void waitMs(int ms) {
 		try {
