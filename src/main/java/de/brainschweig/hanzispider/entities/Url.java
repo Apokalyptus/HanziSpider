@@ -32,6 +32,9 @@ public class Url {
     @Column(name = "mtimestamp")
     private java.sql.Timestamp mtimestamp;
 
+    @Column(name = "mtime")
+    private java.sql.Timestamp mtime;
+
     public Long getIdUrl() {
         return this.idurl;
     }
@@ -62,6 +65,15 @@ public class Url {
 
     public void setMTimeStamp(java.sql.Timestamp mtimestamp) {
         this.mtimestamp = mtimestamp;
+        this.mtime = mtimestamp;
+    }
+
+    public java.sql.Timestamp getMTime() {
+        return this.mtime;
+    }
+
+    public void setMTime(java.sql.Timestamp mtime) {
+        this.mtime = mtime;
     }
 
 }

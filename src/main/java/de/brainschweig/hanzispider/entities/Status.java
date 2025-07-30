@@ -23,10 +23,10 @@ public class Status {
     @Id
     @Column(name = "idstatus")
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private int idstatus;
+    private Long idstatus;
 
     @Column(name = "url_idurl")
-    private int urlId;
+    private Long urlId;
 
     @Column(name = "status")
     private String status;
@@ -34,19 +34,22 @@ public class Status {
     @Column(name = "mtimestamp")
     private java.sql.Timestamp mtimestamp;
 
-    public int getIdStatus() {
+    @Column(name = "mtime")
+    private java.sql.Timestamp mtime;
+
+    public Long getIdStatus() {
         return this.idstatus;
     }
 
-    public void setIdStatus(int idstatus) {
+    public void setIdStatus(Long idstatus) {
         this.idstatus = idstatus;
     }
 
-    public int getUrlId() {
+    public Long getUrlId() {
         return this.urlId;
     }
 
-    public void setUrlId(int urlId) {
+    public void setUrlId(Long urlId) {
         this.urlId = urlId;
     }
 
@@ -64,6 +67,15 @@ public class Status {
 
     public void setMTimeStamp(java.sql.Timestamp mtimestamp) {
         this.mtimestamp = mtimestamp;
+        this.mtime = mtimestamp;
+    }
+
+    public java.sql.Timestamp getMTime() {
+        return this.mtime;
+    }
+
+    public void setMTime(java.sql.Timestamp mtime) {
+        this.mtime = mtime;
     }
 
 }

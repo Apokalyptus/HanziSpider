@@ -14,7 +14,7 @@ public class ProcessLoop implements Runnable {
 	static final Logger logger = LogManager.getLogger(ProcessLoop.class.getName());
 
 	private String webHandler = null;
-
+	private Long urlid = null;
 	private String outputHandler = null;
 
 	private String proxyAddr = null;
@@ -66,33 +66,33 @@ public class ProcessLoop implements Runnable {
 		this.proxyPort = proxyPort;
 	}
 
+	private volatile boolean isRunning = true;
+
 	@Override
 	public void run() {
-
-		boolean isRunning = true;
-
 		while (isRunning) {
 			try {
 				// get hyperLink from database
 				StringBuilder url = new StringBuilder();
 				StringBuilder sUrlid = new StringBuilder();
-				int urlid = 0;
+				Long urlid = 0L;
 
 				Database db = new Database();
 				Database.fetchHyperLink(sUrlid, url);
 
 				try {
-					urlid = Integer.parseInt(sUrlid.toString());
+					urlid = Long.valueOf(sUrlid.toString());
 				} catch (NumberFormatException ex) {
 					continue;
 				}
 
 				if (url.length() == 0) {
-					logger.debug("Found URL with length == 0");
+					logger.debug("No URL found to process, waiting before next attempt");
 					try {
 						Thread.sleep(5000);
 					} catch (InterruptedException e) {
-						logger.error("Sleeping 1000ms went wrong", e);
+						logger.warn("Sleep interrupted, continuing with next iteration");
+						Thread.currentThread().interrupt(); // Preserve interrupt status
 					}
 					continue;
 				}
@@ -115,12 +115,13 @@ public class ProcessLoop implements Runnable {
 						whjs = new WebHandlerSelenium();
 						break;
 					default:
+						whjs = null;
 						logger.error("Unknown web handler: {}", webHandler);
 						throw new IllegalArgumentException("Unknown web handler: " + webHandler);
 				}
 
 				try {
-					WebHandler.getWebContent(url.toString(), bodyContent, hyperLinks);
+					whjs.getWebContent(url.toString(), bodyContent, hyperLinks, proxyAddr, proxyPort);
 				} catch (IOException e) {
 					logger.error("Fetching web content from {} went wrong: {}", url, e);
 					db.insertHyperLinkStatus(urlid, "visited-error");

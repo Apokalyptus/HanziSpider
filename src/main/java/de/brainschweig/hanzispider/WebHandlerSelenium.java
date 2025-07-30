@@ -45,28 +45,43 @@ public class WebHandlerSelenium implements IWebHandler {
 		}
 
 		firefoxOptions.setBinary(firefoxBinary);
-		WebDriver driver = new FirefoxDriver(firefoxOptions);
-
-		logger.error("Start calling the URL: " + url + "\n");
-
+		WebDriver driver = null;
 		try {
+			driver = new FirefoxDriver(firefoxOptions);
+			logger.debug("Starting to fetch URL: {}", url);
+			
 			driver.get(url);
-		} catch (NullPointerException e) {
-			logger.error("cought it", e);
+			
+			WebElement body = driver.findElement(By.tagName("body"));
+			if (body != null) {
+				bodyContent.append(body.getText());
+				if (bodyContent.length() == 0) {
+					logger.warn("Web-Document body is empty");
+				}
+			} else {
+				logger.error("No body element found in document");
+			}
+			
+			List<WebElement> links = driver.findElements(By.tagName("a"));
+			links.forEach(link -> {
+				String href = link.getAttribute("href");
+				if (href != null) {
+					hyperLinks.add(href);
+				}
+			});
+			
+		} catch (Exception e) {
+			logger.error("Error while processing URL {}: {}", url, e.getMessage(), e);
+			throw new IOException("Failed to fetch web content", e);
+		} finally {
+			if (driver != null) {
+				try {
+					driver.quit();
+				} catch (Exception e) {
+					logger.warn("Error while closing WebDriver: {}", e.getMessage());
+				}
+			}
 		}
-
-		bodyContent.append(driver.findElement(By.tagName("body")).getText());
-		if ((bodyContent == null) || bodyContent.length() == 0)  {
-			logger.error("Web-Document not valid!!!");
-		}
-
-		List<WebElement> links = driver.findElements(By.tagName("a"));
-
-		links.forEach((link) -> {
-			hyperLinks.add(link.getAttribute("href"));
-		});
-
-		driver.close();
 	}
 
 }

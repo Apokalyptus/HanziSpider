@@ -23,8 +23,8 @@ import de.brainschweig.hanzispider.entities.Status;
 public class Database {
 
 	private static final Logger logger = LogManager.getLogger(Database.class.getName());
+	private static Session session = null;
 	private String connectionString = null;
-	private Session session = null;
 
 	public Database() {
 		setConnectionString(System.getenv("DB_CONNECTION_STRING"));
@@ -43,7 +43,12 @@ public class Database {
 		configuration.addAnnotatedClass(Status.class);
 		configuration.addAnnotatedClass(Result.class);
 		configuration.setProperty("hibernate.connection.url", getConnectionString());
-		configuration.setProperty("hibernate.hbm2ddl.auto", "create");
+		configuration.setProperty("hibernate.connection.driver_class", "com.mysql.cj.jdbc.Driver");
+		configuration.setProperty("hibernate.dialect", "org.hibernate.dialect.MariaDBDialect");
+		configuration.setProperty("hibernate.hbm2ddl.auto", "validate");
+		configuration.setProperty("hibernate.show_sql", "true");
+		configuration.setProperty("hibernate.format_sql", "true");
+		configuration.setProperty("hibernate.id.new_generator_mappings", "false");
 
 		SessionFactory sessionFactory = configuration.buildSessionFactory();
 
@@ -118,7 +123,7 @@ public class Database {
 	}
 
 
-	public void insertHyperLinkStatus(int urlid, String status) {
+	public void insertHyperLinkStatus(Long urlid, String status) {
 		Status st = new Status();
 		st.setUrlId(urlid);
 		st.setStatus(status);
@@ -132,51 +137,35 @@ public class Database {
 
 	// synchronized
 	static synchronized boolean fetchHyperLink(StringBuilder sUrlid, StringBuilder url) {
-		// PreparedStatement insertStatus = null;
-		// Statement stmt;
-		// ResultSet rs;
-		// int urlid = -1;
-
-		// String selectStatement = "SELECT u.idurl, u.url, s.status FROM url u LEFT JOIN status s ON (u.idurl = s.url_idurl) WHERE s.status IS NULL LIMIT 1;";
-		// String insertStatement = "INSERT INTO `crawler`.`status` ( `url_idurl`, `status`, `mtimestamp`, `mtime`) VALUES (?, ?, NOW(), NOW());";
-
-		// try {
-		// 	conn.setAutoCommit(false);
-
-		// 	stmt = conn.createStatement();
-
-		// 	rs = stmt.executeQuery(selectStatement);
-		// 	if (!rs.next()) {
-		// 		logger.error("Got no ResultSet from Database - No HyperLinks without status available.");
-		// 		return false;
-		// 	} else {
-		// 		logger.debug("got Resultset from Database - Found Hyperlinks without status");
-		// 	}
-
-		// 	urlid = rs.getInt("idurl");
-		// 	url.append(rs.getString("url"));
-		// 	rs.close();
-
-		// 	logger.info("Fetch urlid: " + urlid + " url: " + url);
-
-		// 	insertStatus = conn.prepareStatement(insertStatement);
-		// 	insertStatus.setInt(1, urlid);
-		// 	insertStatus.setString(2, "check-out");
-		// 	insertStatus.executeUpdate();
-		// 	conn.commit();
-
-		// 	rs.close();
-		// 	insertStatus.close();
-
-		// 	logger.info("Insert Status urlid: " + urlid + " Status: check-out");
-		// 	sUrlid.append(String.valueOf(urlid));
-
-		// } catch (SQLException e) {
-		// 	logger.error("Executing Query went wrong:", e);
-
-		// }
+		String hql = "FROM Url u WHERE NOT EXISTS (FROM Status s WHERE s.urlId = u.idurl)";
+		Query q = session.createQuery(hql);
+		q.setMaxResults(1);
+		@SuppressWarnings("unchecked")
+		List<Url> urls = q.getResultList();
+		
+		if (urls.isEmpty()) {
+			logger.error("Got no ResultSet from Database - No HyperLinks without status available.");
+			return false;
+		}
+		
+		Url nextUrl = urls.get(0);
+		sUrlid.append(String.valueOf(nextUrl.getIdUrl()));
+		url.append(nextUrl.getUrl());
+		
+		logger.info("Fetch urlid: {} url: {}", nextUrl.getIdUrl(), nextUrl.getUrl());
+		
+		Status st = new Status();
+		st.setUrlId(nextUrl.getIdUrl());
+		st.setStatus("check-out");
+		st.setMTimeStamp(java.sql.Timestamp.from(Instant.now()));
+		
+		session.beginTransaction();
+		session.save(st);
+		session.getTransaction().commit();
+		
+		logger.info("Insert Status urlid: {} Status: check-out", nextUrl.getIdUrl());
+		
 		return true;
-
 	}
 
 	//static void insertHyperLinkStatus(int urlid, String status) {
