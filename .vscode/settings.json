@@ -1,8 +1,11 @@
 {
-    "java.configuration.updateBuildConfiguration": "automatic",
-    "sonarlint.connectedMode.project": {
-        "connectionId": "apokalyptus @ SONARCLOUD",
-        "projectKey": "Apokalyptus_HanziSpider"
-    },
-    "java.compile.nullAnalysis.mode": "automatic"
+    "java.jdt.ls.java.home": "/usr/lib/jvm/java-21-openjdk",
+    "java.configuration.runtimes": [
+    
+      {
+        "name": "JavaSE-21",
+        "path": "/usr/lib/jvm/java-21-openjdk",
+        "default": true
+      },
+    ],
 }

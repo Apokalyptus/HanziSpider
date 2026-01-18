@@ -1,226 +1,187 @@
 package de.brainschweig.hanzispider;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.cfg.Configuration;
-
 import java.math.BigInteger;
+import java.util.Map;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
-
-import javax.persistence.Query;
-
-import de.brainschweig.hanzispider.entities.Url;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.hibernate.LockMode;
+import org.hibernate.query.Query; // Corrected import for Query
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 import de.brainschweig.hanzispider.entities.Result;
 import de.brainschweig.hanzispider.entities.Status;
+import de.brainschweig.hanzispider.entities.Url;
 
 public class Database {
 
 	private static final Logger logger = LogManager.getLogger(Database.class.getName());
-	private static Session session = null;
-	private String connectionString = null;
 
-	public Database() {
-		setConnectionString(System.getenv("DB_CONNECTION_STRING"));
-		doConfiguration();
+	private Database() {
+		throw new IllegalStateException("Utility class");
 	}
 
-	public Database(String connectionString) {
-		setConnectionString(connectionString);
-		doConfiguration();
-	}
-
-	private void doConfiguration() {
-		Configuration configuration = new Configuration();
-		// configuration.configure("hibernate.cfg.xml");
-		configuration.addAnnotatedClass(Url.class);
-		configuration.addAnnotatedClass(Status.class);
-		configuration.addAnnotatedClass(Result.class);
-		configuration.setProperty("hibernate.connection.url", getConnectionString());
-		configuration.setProperty("hibernate.connection.driver_class", "com.mysql.cj.jdbc.Driver");
-		configuration.setProperty("hibernate.dialect", "org.hibernate.dialect.MariaDBDialect");
-		configuration.setProperty("hibernate.hbm2ddl.auto", "validate");
-		configuration.setProperty("hibernate.show_sql", "true");
-		configuration.setProperty("hibernate.format_sql", "true");
-		configuration.setProperty("hibernate.id.new_generator_mappings", "false");
-
-		SessionFactory sessionFactory = configuration.buildSessionFactory();
-
-		session = sessionFactory.openSession();
-
-	}
-
-	public void insertResult(String result){
-		
-		Result cr = new Result();
-		cr.setHanzi(result);
-
-		session.beginTransaction();
-		session.save(cr);
-		session.getTransaction().commit();
-
-	}
-
-	public void setConnectionString(String connectionString) {
-		if (connectionString == null || connectionString.isEmpty()) {
-			System.out.println("ERROR: Environement Variable DB_CONNECTION_STRING is empty.");
-			logger.error("Environement Variable DB_CONNECTION_STRING is empty.");
-			System.exit(-1);
+	public static void insertResult(String result) {
+		Transaction transaction = null;
+		try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+			transaction = session.beginTransaction();
+			Result cr = new Result();
+			cr.setHanzi(result);
+			session.save(cr);
+			transaction.commit();
+		} catch (Exception e) {
+			if (transaction != null) {
+				transaction.rollback();
+			}
+			logger.error("Failed to insert result", e);
 		}
-		this.connectionString = connectionString;
 	}
 
-	public String getConnectionString() {
-		return this.connectionString;
-	}
+	public static void storeHyperLinks(Set<String> hyperLinks) {
+		if (hyperLinks == null || hyperLinks.isEmpty()) {
+			return;
+		}
 
-	@SuppressWarnings("null")
-	public void storeHyperLinks(Set<String> hyperLinks) {
-		MessageDigest m = null;
-		try{
+		MessageDigest m;
+		try {
 			m = MessageDigest.getInstance("MD5");
-		} catch (NoSuchAlgorithmException nsae){
-			logger.error("what the heck");
+		} catch (NoSuchAlgorithmException nsae) {
+			logger.error("MD5 algorithm not found", nsae);
+			return;
 		}
-		
+
+		// Create a map of md5sum -> original URL
+		Map<String, String> md5ToUrl = new java.util.HashMap<>();
 		for (String hyperLink : hyperLinks) {
 			m.update(hyperLink.getBytes(), 0, hyperLink.length());
 			String md5string = new BigInteger(1, m.digest()).toString(16);
-
-			if (doesMd5Exist(md5string))
-					continue;
-
-			Url ul = new Url();
-			ul.setUrl(hyperLink);
-			ul.setMd5Sum(md5string);
-			ul.setMTimeStamp(java.sql.Timestamp.from(Instant.now()));
-
-			session.beginTransaction();
-			session.save(ul);
-			session.getTransaction().commit();
-
-			logger.info("Inserted: Hyperlink: {} MD%: {}", hyperLink, md5string);
+			md5ToUrl.put(md5string, hyperLink);
 		}
 
+		// Find which md5s already exist in the database in a single query
+		Set<String> existingMd5s;
+		try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+			String hql = "SELECT u.md5sum FROM Url u WHERE u.md5sum IN (:md5s)";
+			existingMd5s = new java.util.HashSet<>(
+					session.createQuery(hql, String.class)
+							.setParameterList("md5s", md5ToUrl.keySet())
+							.list());
+		}
+
+		// Insert the new URLs in a single transaction with batching
+		Transaction transaction = null;
+		try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+			transaction = session.beginTransaction();
+			int i = 0;
+			for (Map.Entry<String, String> entry : md5ToUrl.entrySet()) {
+				String md5sum = entry.getKey();
+				if (!existingMd5s.contains(md5sum)) {
+					String hyperLink = entry.getValue();
+
+					Url ul = new Url();
+					ul.setUrl(hyperLink);
+					ul.setMd5Sum(md5sum);
+					ul.setMTimeStamp(java.sql.Timestamp.from(Instant.now()));
+
+					session.save(ul);
+					i++;
+					logger.info("Queued for insert: Hyperlink: {} MD5: {}", hyperLink, md5sum);
+
+					// Flush and clear the session periodically to manage memory
+					if (i % 50 == 0) {
+						session.flush();
+						session.clear();
+					}
+				}
+			}
+			transaction.commit();
+			logger.info("Committed {} new hyperlinks to the database.", i);
+		} catch (Exception e) {
+			if (transaction != null) {
+				transaction.rollback();
+			}
+			logger.error("Failed to insert new hyperlinks batch.", e);
+		}
 	}
 
-	
-	boolean doesMd5Exist(String md5sum) {
-		String hql = "SELECT count(md5sum) as md5count FROM Url WHERE md5sum = :md5sum";
-		Query q = session.createQuery(hql).setParameter("md5sum", md5sum);
-		@SuppressWarnings("unchecked")
-		List<Long> list = q.getResultList();
-
-
-		return list.get(0) > 0;
-
+	static boolean doesMd5Exist(String md5sum) {
+		try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+			String hql = "SELECT count(md5sum) as md5count FROM Url WHERE md5sum = :md5sum";
+			Query q = session.createQuery(hql).setParameter("md5sum", md5sum);
+			@SuppressWarnings("unchecked")
+			List<Long> list = q.getResultList();
+			return !list.isEmpty() && list.get(0) > 0;
+		}
 	}
 
-
-	public void insertHyperLinkStatus(Long urlid, String status) {
-		Status st = new Status();
-		st.setUrlId(urlid);
-		st.setStatus(status);
-		st.setMTimeStamp(java.sql.Timestamp.from(Instant.now()));
-		
-		session.beginTransaction();
-		session.save(st);
-		session.getTransaction().commit();
+	public static void insertHyperLinkStatus(Long urlid, String status) {
+		Transaction transaction = null;
+		try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+			transaction = session.beginTransaction();
+			Status st = new Status();
+			st.setUrlId(urlid);
+			st.setStatus(status);
+			st.setMTimeStamp(java.sql.Timestamp.from(Instant.now()));
+			session.save(st);
+			transaction.commit();
+		} catch (Exception e) {
+			if (transaction != null) {
+				transaction.rollback();
+			}
+			logger.error("Failed to insert hyperlink status for urlid: " + urlid, e);
+		}
 	}
 
+	static boolean fetchHyperLink(StringBuilder sUrlid, StringBuilder url) {
+		Transaction transaction = null;
+		try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+			transaction = session.beginTransaction();
 
-	// synchronized
-	static synchronized boolean fetchHyperLink(StringBuilder sUrlid, StringBuilder url) {
-		String hql = "FROM Url u WHERE NOT EXISTS (FROM Status s WHERE s.urlId = u.idurl)";
-		Query q = session.createQuery(hql);
-		q.setMaxResults(1);
-		@SuppressWarnings("unchecked")
-		List<Url> urls = q.getResultList();
-		
-		if (urls.isEmpty()) {
-			logger.error("Got no ResultSet from Database - No HyperLinks without status available.");
+			String hql = "FROM Url u WHERE u.idurl NOT IN (SELECT s.urlId FROM Status s)";
+
+			List<Url> urls = session.createQuery(hql, Url.class)
+					.setMaxResults(1)
+					.setLockMode(LockMode.PESSIMISTIC_WRITE) // Using setLockMode with LockMode.PESSIMISTIC_WRITE
+					.list();
+
+			if (urls.isEmpty()) {
+				// This is a normal condition when the queue is empty, so changing log level to debug
+				logger.debug("No new hyperlinks available in the database to process.");
+				transaction.commit();
+				return false;
+			}
+
+			Url nextUrl = urls.get(0);
+			sUrlid.append(String.valueOf(nextUrl.getIdUrl()));
+			url.append(nextUrl.getUrl());
+
+			logger.info("Fetched urlid: {} url: {}", nextUrl.getIdUrl(), nextUrl.getUrl());
+
+			Status st = new Status();
+			st.setUrlId(nextUrl.getIdUrl());
+			st.setStatus("check-out");
+			st.setMTimeStamp(java.sql.Timestamp.from(Instant.now()));
+
+			session.save(st);
+			transaction.commit();
+
+			logger.info("Checked-out urlid: {}", nextUrl.getIdUrl());
+
+			return true;
+		} catch (Exception e) {
+			if (transaction != null) {
+				transaction.rollback();
+			}
+			logger.error("Failed to fetch hyperlink", e);
 			return false;
 		}
-		
-		Url nextUrl = urls.get(0);
-		sUrlid.append(String.valueOf(nextUrl.getIdUrl()));
-		url.append(nextUrl.getUrl());
-		
-		logger.info("Fetch urlid: {} url: {}", nextUrl.getIdUrl(), nextUrl.getUrl());
-		
-		Status st = new Status();
-		st.setUrlId(nextUrl.getIdUrl());
-		st.setStatus("check-out");
-		st.setMTimeStamp(java.sql.Timestamp.from(Instant.now()));
-		
-		session.beginTransaction();
-		session.save(st);
-		session.getTransaction().commit();
-		
-		logger.info("Insert Status urlid: {} Status: check-out", nextUrl.getIdUrl());
-		
-		return true;
 	}
 
-	//static void insertHyperLinkStatus(int urlid, String status) {
-		// PreparedStatement insertUrl = null;
-		// String insertStatement = "INSERT INTO `crawler`.`status` ( `url_idurl`, `status`, `mtimestamp`, `mtime`) VALUES (?, ?, NOW(), NOW());";
-		// try {
-
-		// 	conn.setAutoCommit(false);
-
-		// 	insertUrl = conn.prepareStatement(insertStatement);
-		// 	insertUrl.setInt(1, urlid);
-		// 	insertUrl.setString(2, status);
-		// 	insertUrl.executeUpdate();
-		// 	conn.commit();
-
-		// 	insertUrl.close();
-
-		// 	logger.info("Insert Status urlid: " + urlid + " Status: " + status);
-
-		// } catch (SQLException e) {
-		// 	logger.error("Executing Query went wrong:", e);
-		// 	try {
-		// 		conn.rollback();
-		// 	} catch (SQLException e1) {
-		// 		logger.error("Rollback went wrong", e1);
-
-		// 	}
-		// }
-	//}
-
 	static void insertCrawlResult(String result) {
-		// PreparedStatement insertResult = null;
-		// String insertStatement = "INSERT INTO `crawler`.`results` ( `Hanzi` ) VALUES (?);";
-		// try {
-
-		// 	conn.setAutoCommit(false);
-
-		// 	insertResult = conn.prepareStatement(insertStatement);
-
-		// 	insertResult.setString(1, result);
-		// 	insertResult.executeUpdate();
-		// 	conn.commit();
-
-		// 	insertResult.close();
-
-		// 	logger.info("Insert Result: " + result);
-
-		// } catch (SQLException e) {
-		// 	logger.error("Executing Query went wrong:", e);
-		// 	try {
-		// 		conn.rollback();
-		// 	} catch (SQLException e1) {
-		// 		logger.error("Rollback went wrong", e1);
-
-		// 	}
-		// }
+		insertResult(result);
 	}
 }
