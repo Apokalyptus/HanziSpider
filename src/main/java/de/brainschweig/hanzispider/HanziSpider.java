@@ -2,6 +2,8 @@ package de.brainschweig.hanzispider;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -20,11 +22,12 @@ public class HanziSpider {
 
 		// Fetch configuration from environment variables with defaults
 		final int maxThreads = getEnvInt("MAX_THREADS", 10);
-		final int sleepIntervalMs = getEnvInt("SLEEP_INTERVAL_MS", 5000);
+		final int sleepIntervalMs = getEnvInt("SLEEP_INTERVAL_MS", 5);
 		final String webHandler = getEnv("WEBHANDLER", "jsoup");
 		final String outputHandler = getEnv("OUTPUTHANDLER", "mysqldatabase");
 		final String proxy = getEnv("PROXY", null);
 		final String proxyPort = getEnv("PROXYPORT", null);
+		final String singleSpiderUrl = getEnv("SINGLE_SPIDER_URL", null);
 		final String connectionString = System.getenv("DB_CONNECTION_STRING"); // Handled in HibernateUtil
 
 		logger.info("--- Configuration ---");
@@ -34,6 +37,7 @@ public class HanziSpider {
 		logger.info("OUTPUTHANDLER: {}", outputHandler);
 		logger.info("PROXY: {}", proxy != null ? proxy : "not set");
 		logger.info("PROXYPORT: {}", proxyPort != null ? proxyPort : "not set");
+		logger.info("SINGLE_SPIDER_URL: {}", singleSpiderUrl != null ? singleSpiderUrl : "not set");
 		logger.info("---------------------");
 
 		if (connectionString == null || connectionString.isEmpty()) {
@@ -56,9 +60,27 @@ public class HanziSpider {
 			checkForExistanceOrCreate(DIR_EXISTING, logger, logDirectory, new File(logDirectory));
 			checkForExistanceOrCreate(DIR_EXISTING, logger, outDirectory, new File(outDirectory));
 
+			final Thread ofh = new Thread(new OutputHandlerFile(), "OutFileHandler");
+			ofh.start();
+
+			final Thread ohd = new Thread(new OutputHandlerDatabase(), "OutDatabaseHandler");
+			ohd.start();
+			
+			final List<ProcessLoop> processLoops = new ArrayList<>();
+
 			// Add a shutdown hook to close the executor and session factory
 			Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 				logger.info("Initiating shutdown...");
+				
+				// Stop output handlers
+				ofh.interrupt();
+				ohd.interrupt();
+				
+				// Stop worker tasks
+				for (ProcessLoop pl : processLoops) {
+					pl.shutdown();
+				}
+				
 				executor.shutdown();
 				try {
 					if (!executor.awaitTermination(60, TimeUnit.SECONDS)) {
@@ -71,18 +93,25 @@ public class HanziSpider {
 					executor.shutdownNow();
 					Thread.currentThread().interrupt();
 				}
+				
+				// Join output handlers to ensure they flushed
+				try {
+					ofh.join(5000);
+					ohd.join(5000);
+				} catch (InterruptedException e) {
+					logger.warn("Interrupted while waiting for output handlers to stop.");
+				}
+				
 				logger.info("Shutting down Hibernate SessionFactory...");
 				HibernateUtil.shutdown();
 				logger.info("Shutdown complete.");
 			}));
 
-			Thread ofh = new Thread(new OutputHandlerFile(), "OutFileHandler");
-			ofh.start();
-
 			// Schedule worker tasks
 			for (int a = 0; a < maxThreads; a++) {
-				ProcessLoop pl = new ProcessLoop(webHandler, proxy, proxyPort);
+				ProcessLoop pl = new ProcessLoop(webHandler, proxy, proxyPort, singleSpiderUrl);
 				pl.setOutputHandler(outputHandler);
+				processLoops.add(pl);
 				executor.scheduleWithFixedDelay(pl, 0, sleepIntervalMs, TimeUnit.MILLISECONDS);
 			}
 
@@ -117,6 +146,13 @@ public class HanziSpider {
 		String value = System.getenv(name);
 		if (value == null || value.trim().isEmpty()) {
 			return defaultValue;
+		}
+		// Remove surrounding quotes if present
+		value = value.trim();
+		if (value.startsWith("\"") && value.endsWith("\"") && value.length() >= 2) {
+			value = value.substring(1, value.length() - 1);
+		} else if (value.startsWith("'") && value.endsWith("'") && value.length() >= 2) {
+			value = value.substring(1, value.length() - 1);
 		}
 		return value;
 	}

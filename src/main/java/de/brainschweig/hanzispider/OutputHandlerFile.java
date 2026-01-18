@@ -46,40 +46,46 @@ public class OutputHandlerFile implements IOutputHandler {
 
 	@Override
 	public void run() {
-		boolean goOn = true;
-		while (goOn) {
+		while (!Thread.currentThread().isInterrupted()) {
 			StringBuilder buffer = new StringBuilder();
 
 			do {
 				String next = getBuffer();
 				if (null == next || next.isEmpty()) {
-					waitMs(1000);
+					if (waitMs(1000)) {
+						return; // Interrupted
+					}
 					continue;
 				}
 				buffer.append(next);
 				logger.info("Data consumed and added. Buffersize now: {}", buffer.length());
 
-			} while (buffer.length() < fileSize);
+			} while (buffer.length() < fileSize && !Thread.currentThread().isInterrupted());
 
-			long sfileName = System.currentTimeMillis();
-			String fileName = String.valueOf(sfileName);
-
-			try (Writer out = new BufferedWriter(new OutputStreamWriter(
-					new FileOutputStream(outputFileFolder.concat(File.separator).concat(fileName)),
-					StandardCharsets.UTF_8))) {
-				out.write(buffer.toString());
-				logger.info("Written to file: '{}'", fileName);
-			} catch (IOException e) {
-				logger.error("IOException: {}", e.toString());
+			if (buffer.length() > 0) {
+				long sfileName = System.currentTimeMillis();
+				String fileName = String.valueOf(sfileName);
+	
+				try (Writer out = new BufferedWriter(new OutputStreamWriter(
+						new FileOutputStream(outputFileFolder.concat(File.separator).concat(fileName)),
+						StandardCharsets.UTF_8))) {
+					out.write(buffer.toString());
+					logger.info("Written to file: '{}'", fileName);
+				} catch (IOException e) {
+					logger.error("IOException: {}", e.toString());
+				}
 			}
 		}
 	}
 
-	private void waitMs(int ms) {
+	private boolean waitMs(int ms) {
 		try {
 			Thread.sleep(ms);
+			return false;
 		} catch (InterruptedException e) {
-			logger.error("Failed to sleep {} ms: {}", ms, e);
+			logger.info("Thread interrupted, stopping.");
+			Thread.currentThread().interrupt();
+			return true;
 		}
 	}
 

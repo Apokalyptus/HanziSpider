@@ -1,5 +1,8 @@
-FROM docker.io/openjdk:23
-ADD http://192.168.178.240:8061/repository/raw/HanziSpider/HanziSpider-1.0-SNAPSHOT-jar-with-dependencies.jar HanziSpider-1.0-SNAPSHOT-jar-with-dependencies.jar
-COPY entrypoint.sh /
+FROM docker.io/cimg/openjdk:21.0.9-browsers
+USER root
+WORKDIR /app
+COPY target/HanziSpider-1.0-SNAPSHOT-jar-with-dependencies.jar app.jar
+COPY entrypoint.sh .
+RUN chmod +x entrypoint.sh
 ENV JAVA_OPTS=""
-ENTRYPOINT ["/entrypoint.sh"] 
+ENTRYPOINT ["./entrypoint.sh"]

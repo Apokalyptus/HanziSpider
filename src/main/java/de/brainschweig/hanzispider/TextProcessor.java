@@ -29,6 +29,8 @@ public class TextProcessor {
 			return null;
 		}
 
+		bodyContent = new StringBuilder(convertToSimplified(bodyContent.toString()));
+
 		for (int a = 0; a < bodyContent.length(); a++) {
 			// Replace everything which is not HAN Character by carriage Return
 			int codepoint = bodyContent.codePointAt(a);
@@ -62,5 +64,19 @@ public class TextProcessor {
 		logger.info("after: {}", bodyContent);
 		return bodyContent;
 
+	}
+
+	private static String convertToSimplified(String input) {
+		try {
+			Class<?> clazz = Class.forName("com.github.houbb.opencc4j.util.ZhConverterUtil");
+			try {
+				return (String) clazz.getMethod("toSimple", String.class).invoke(null, input);
+			} catch (NoSuchMethodException e) {
+				return (String) clazz.getMethod("convertToSimple", String.class).invoke(null, input);
+			}
+		} catch (Exception e) {
+			logger.warn("Simplified conversion unavailable, keeping original text.");
+			return input;
+		}
 	}
 }

@@ -1,0 +1,24 @@
+erDiagram
+  URL ||--o{ STATUS : has
+  URL ||--o{ RESULTS : produces
+  URL {
+    bigint idurl PK
+    text url
+    varchar md5sum
+    timestamp mtimestamp
+    timestamp mtime
+    varchar last_status
+    timestamp last_status_ts
+  }
+  STATUS {
+    bigint idstatus PK
+    bigint url_idurl FK
+    varchar status
+    timestamp mtimestamp
+    timestamp mtime
+  }
+  RESULTS {
+    bigint id PK
+    varchar hanzi
+    varchar redundant
+  }

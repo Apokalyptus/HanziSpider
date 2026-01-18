@@ -20,7 +20,7 @@ import javax.persistence.*;
 public class Url {
     @Id
     @Column(name = "idurl")
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idurl;
 
     @Column(name = "url", columnDefinition = "TEXT")
@@ -34,6 +34,12 @@ public class Url {
 
     @Column(name = "mtime")
     private java.sql.Timestamp mtime;
+
+    @Column(name = "last_status", length = 64)
+    private String lastStatus;
+
+    @Column(name = "last_status_ts")
+    private java.sql.Timestamp lastStatusTs;
 
     public Long getIdUrl() {
         return this.idurl;
@@ -74,6 +80,22 @@ public class Url {
 
     public void setMTime(java.sql.Timestamp mtime) {
         this.mtime = mtime;
+    }
+
+    public String getLastStatus() {
+        return lastStatus;
+    }
+
+    public void setLastStatus(String lastStatus) {
+        this.lastStatus = lastStatus;
+    }
+
+    public java.sql.Timestamp getLastStatusTs() {
+        return lastStatusTs;
+    }
+
+    public void setLastStatusTs(java.sql.Timestamp lastStatusTs) {
+        this.lastStatusTs = lastStatusTs;
     }
 
 }
