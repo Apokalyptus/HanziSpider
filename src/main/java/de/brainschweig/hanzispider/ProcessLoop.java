@@ -14,50 +14,16 @@ public class ProcessLoop implements Runnable {
 	static final Logger logger = LogManager.getLogger(ProcessLoop.class.getName());
 
 	private String webHandler = null;
-	private Long urlid = null;
 	private String outputHandler = null;
-
 	private String proxyAddr = null;
-
 	private String proxyPort = null;
 
-	public String getOutputHandler() {
-		return outputHandler;
-	}
-
-	public void setOutputHandler(String outputHandler) {
-		this.outputHandler = outputHandler;
-	}
-
-	public String getProxyAddr() {
-		return proxyAddr;
-	}
-
-	public void setProxyAddr(String proxyAddr) {
-		this.proxyAddr = proxyAddr;
-	}
-
-	public String getProxyPort() {
-		return proxyPort;
-	}
-
-	public void setProxyPort(String proxyPort) {
-		this.proxyPort = proxyPort;
-	}
-
-	public String getWebHandler() {
-		return webHandler;
-	}
-
-	public void setWebHandler(String webHandler) {
-		this.webHandler = webHandler;
-	}
-
 	public ProcessLoop() {
+		this(null, null, null);
 	}
 
 	public ProcessLoop(String webHandler) {
-		this.webHandler = webHandler;
+		this(webHandler, null, null);
 	}
 
 	public ProcessLoop(String webHandler, String proxyAddr, String proxyPort) {
@@ -66,111 +32,104 @@ public class ProcessLoop implements Runnable {
 		this.proxyPort = proxyPort;
 	}
 
-	private volatile boolean isRunning = true;
+	public void setOutputHandler(String outputHandler) {
+		this.outputHandler = outputHandler;
+	}
+
+	public void setProxyAddr(String proxyAddr) {
+		this.proxyAddr = proxyAddr;
+	}
+
+	public void setProxyPort(String proxyPort) {
+		this.proxyPort = proxyPort;
+	}
+
+	public void setWebHandler(String webHandler) {
+		this.webHandler = webHandler;
+	}
 
 	@Override
 	public void run() {
-		while (isRunning) {
-			try {
-				// get hyperLink from database
-				StringBuilder url = new StringBuilder();
-				StringBuilder sUrlid = new StringBuilder();
-				Long urlid = 0L;
+		try {
+			logger.debug("Worker thread {} checking for new URL.", Thread.currentThread().getName());
+			// get hyperLink from database
+			StringBuilder url = new StringBuilder();
+			StringBuilder sUrlid = new StringBuilder();
 
-				Database db = new Database();
-				Database.fetchHyperLink(sUrlid, url);
-
-				try {
-					urlid = Long.valueOf(sUrlid.toString());
-				} catch (NumberFormatException ex) {
-					continue;
-				}
-
-				if (url.length() == 0) {
-					logger.debug("No URL found to process, waiting before next attempt");
-					try {
-						Thread.sleep(5000);
-					} catch (InterruptedException e) {
-						logger.warn("Sleep interrupted, continuing with next iteration");
-						Thread.currentThread().interrupt(); // Preserve interrupt status
-					}
-					continue;
-				}
-
-				Set<String> hyperLinks = new HashSet<>();
-				StringBuilder bodyContent = new StringBuilder();
-
-				// get webpage
-
-				IWebHandler whjs;
-
-				switch (webHandler == null ? "" : webHandler.toLowerCase()) {
-					case "":
-						whjs = new WebHandlerJsoup();
-						break;
-					case "jsoup":
-						whjs = new WebHandlerJsoup();
-						break;
-					case "selenium":
-						whjs = new WebHandlerSelenium();
-						break;
-					default:
-						whjs = null;
-						logger.error("Unknown web handler: {}", webHandler);
-						throw new IllegalArgumentException("Unknown web handler: " + webHandler);
-				}
-
-				try {
-					whjs.getWebContent(url.toString(), bodyContent, hyperLinks, proxyAddr, proxyPort);
-				} catch (IOException e) {
-					logger.error("Fetching web content from {} went wrong: {}", url, e);
-					db.insertHyperLinkStatus(urlid, "visited-error");
-					continue;
-				}
-				// check hyperlinks against some rules
-				HyperLinkProcessor.cleanUpHyperLinks(hyperLinks);
-
-				// save hyperLinks to DB
-				db.storeHyperLinks(hyperLinks);
-
-				// process Text
-				if (bodyContent.length() == 0) {
-					logger.info("bodyContent length zero. Skip!");
-					continue;
-				}
-				bodyContent = TextProcessor.processText(bodyContent);
-
-				// Write Status to DB
-				db.insertHyperLinkStatus(urlid, "visited-ok");
-
-				// write to file
-				logger.info("hyperlinks: {} BodyContent: {}", hyperLinks.size(), bodyContent.length());
-
-				IOutputHandler oh = null;
-
-				switch (outputHandler == null ? "" : outputHandler.toLowerCase()) {
-					case "":
-						oh = new OutputHandlerDatabase();
-						break;
-					case "mysqldatabase":
-						oh = new OutputHandlerDatabase();
-						break;
-					case "file":
-						oh = new OutputHandlerFile();
-						break;
-					default:
-						logger.error("Unknown output handler: {}", outputHandler);
-						throw new IllegalArgumentException("Unknown output handler: " + outputHandler);
-				}
-
-				oh.addToBuffer(bodyContent.toString());
-
-			} catch (Exception ex) {
-				logger.error("Found unhandled exception: ", ex);
+			if (!Database.fetchHyperLink(sUrlid, url)) {
+				logger.debug("No URL found to process. Will try again later.");
+				return; // Exit the run method. The executor will schedule the next run.
 			}
 
+			long urlid;
+			try {
+				urlid = Long.parseLong(sUrlid.toString());
+			} catch (NumberFormatException ex) {
+				logger.warn("Invalid urlid retrieved: '{}'. Skipping.", sUrlid);
+				return;
+			}
+
+			Set<String> hyperLinks = new HashSet<>();
+			StringBuilder bodyContent = new StringBuilder();
+
+			IWebHandler whjs;
+			switch (webHandler == null ? "" : webHandler.toLowerCase()) {
+				case "":
+				case "jsoup":
+					whjs = new WebHandlerJsoup();
+					break;
+				case "selenium":
+					whjs = new WebHandlerSelenium();
+					break;
+				default:
+					logger.error("Unknown web handler: {}. This task will not be rescheduled.", webHandler);
+					// By throwing an exception, we can prevent the executor from rescheduling this task
+					// if something is fundamentally broken.
+					throw new IllegalArgumentException("Unknown web handler: " + webHandler);
+			}
+
+			try {
+				whjs.getWebContent(url.toString(), bodyContent, hyperLinks, proxyAddr, proxyPort);
+			} catch (IOException e) {
+				logger.error("Fetching web content from {} went wrong: {}", url, e);
+				Database.insertHyperLinkStatus(urlid, "visited-error");
+				return;
+			}
+			
+			HyperLinkProcessor.cleanUpHyperLinks(hyperLinks);
+			Database.storeHyperLinks(hyperLinks);
+
+			if (bodyContent.length() == 0) {
+				logger.info("bodyContent length zero for urlid {}. Skip!", urlid);
+				Database.insertHyperLinkStatus(urlid, "visited-empty");
+				return;
+			}
+			
+			bodyContent = TextProcessor.processText(bodyContent);
+			Database.insertHyperLinkStatus(urlid, "visited-ok");
+			logger.info("Successfully processed urlid: {}, hyperlinks found: {}, BodyContent length: {}", urlid, hyperLinks.size(), bodyContent.length());
+
+			IOutputHandler oh;
+			switch (outputHandler == null ? "" : outputHandler.toLowerCase()) {
+				case "":
+				case "mysqldatabase":
+					oh = new OutputHandlerDatabase();
+					break;
+				case "file":
+					oh = new OutputHandlerFile();
+					break;
+				default:
+					logger.error("Unknown output handler: {}. This task will not be rescheduled.", outputHandler);
+					throw new IllegalArgumentException("Unknown output handler: " + outputHandler);
+			}
+
+			oh.addToBuffer(bodyContent.toString());
+
+		} catch (Exception ex) {
+			// Log exceptions to prevent the ScheduledExecutorService from silently swallowing them
+			logger.error("Unhandled exception in ProcessLoop, task for thread {} will terminate.", Thread.currentThread().getName(), ex);
+			// Re-throwing the exception will prevent the ScheduledExecutorService from re-scheduling the task.
+			throw new RuntimeException(ex);
 		}
-
 	}
-
 }
