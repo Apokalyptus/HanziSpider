@@ -4,15 +4,19 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-
+        {
+            "type": "java",
+            "name": "InsertNewTestUrls",
+            "request": "launch",
+            "mainClass": "de.brainschweig.hanzispider.InsertNewTestUrls",
+            "projectName": "HanziSpider"
+        },
         {
             "type": "java",
             "name": "Launch Java Program",
             "request": "launch",
             "mainClass": ""
         },
-
-        
         {
             "type": "java",
             "name": "Launch Current File",
@@ -26,12 +30,11 @@
             "mainClass": "de.brainschweig.hanzispider.HanziSpider",
             "projectName": "HanziSpider",
             "env": {
-                 "DB_CONNECTION_STRING": "jdbc:mysql://127.0.0.1/crawler?user=crawler&password=crawlerX",
-                 "WEBHANDLER": "JSoup",
-                 "OUTPUTHANDLER": "MySQLDatabase",
-                 //"OUTPUTHANDLER": "File",
-                 "PROXY": "",
-                 "PROXYPORT": ""
+                "DB_CONNECTION_STRING": "jdbc:mysql://127.0.0.1/crawler?user=crawler&password=crawlerX",
+                "WEBHANDLER": "JSoup",
+                "OUTPUTHANDLER": "MySQLDatabase",
+                "PROXY": "",
+                "PROXYPORT": ""
             }
         }
     ]

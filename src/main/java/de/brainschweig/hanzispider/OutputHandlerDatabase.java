@@ -21,11 +21,15 @@ public class OutputHandlerDatabase implements IOutputHandler {
 	}
 
 	public synchronized void addToBuffer(String bodyContent) {
-		buffer.add(bodyContent);
+		if (bodyContent != null) {
+			buffer.add(bodyContent);
+		}
 	}
 
 	public static synchronized void addToBufferStatic(String bodyContent) {
-		buffer.add(bodyContent);
+		if (bodyContent != null) {
+			buffer.add(bodyContent);
+		}
 	}
 
 	public synchronized String getBuffer() {
@@ -35,7 +39,7 @@ public class OutputHandlerDatabase implements IOutputHandler {
 	@Override
 	public void run() {
 		String next = "";
-		while (true) {
+		while (!Thread.currentThread().isInterrupted()) {
 
 			next = getBuffer();
 
@@ -43,8 +47,9 @@ public class OutputHandlerDatabase implements IOutputHandler {
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e) {
-
-					e.printStackTrace();
+					logger.info("Thread interrupted, stopping.");
+					Thread.currentThread().interrupt();
+					break;
 				}
 				continue;
 			}
@@ -54,7 +59,7 @@ public class OutputHandlerDatabase implements IOutputHandler {
 				if (resultChunk.isEmpty()) {
 					continue;
 				}
-				//Database.insertCrawlResult(resultChunk);
+				Database.insertCrawlResult(resultChunk);
 				logger.info("Result written to Database");
 			}
 

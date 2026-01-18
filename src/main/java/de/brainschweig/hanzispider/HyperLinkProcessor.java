@@ -14,13 +14,21 @@ public class HyperLinkProcessor {
 		Set<String> newHyperLinks = new HashSet<>();
 
 		for (String hl : hyperLinks) {
-			if (hl.trim().isEmpty())
+			String trimmedHl = hl.trim();
+			if (trimmedHl.isEmpty()) {
 				continue;
+			}
+			
+			String lowerHl = trimmedHl.toLowerCase();
+			if (!lowerHl.startsWith("http://") && !lowerHl.startsWith("https://")) {
+				continue;
+			}
 
-			newHyperLinks.add(hl);
+			newHyperLinks.add(trimmedHl);
 		}
 
-		hyperLinks = newHyperLinks;
+		hyperLinks.clear();
+		hyperLinks.addAll(newHyperLinks);
 
 	}
 

@@ -1,6 +1,15 @@
 target/
 merker
-.vscode/settings.json
 bin/
-logs/*
-src/main/java/de/brainschweig/hanzispider/Database copy
+logs/
+*.log
+id.txt
+*.class
+.classpath
+.project
+.factorypath
+.settings/
+.java-prefs/
+.vscode/
+*.code-workspace
+.DS_Store
