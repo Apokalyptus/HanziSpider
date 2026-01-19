@@ -13,3 +13,5 @@ id.txt
 .vscode/
 *.code-workspace
 .DS_Store
+.env
+.env.*

@@ -12,7 +12,12 @@ DB_HOST="${DB_HOST:-192.168.178.240}"
 DB_PORT="${DB_PORT:-5432}"
 DB_NAME="${DB_NAME:-crawler_test}"
 DB_USER="${DB_USER:-postgres}"
-DB_PASSWORD="${DB_PASSWORD:-Uszt6gop}"
+DB_PASSWORD="${DB_PASSWORD:-}"
+
+if [ -z "$DB_PASSWORD" ]; then
+  echo "ERROR: DB_PASSWORD is not set. Provide it via .env or environment."
+  exit 1
+fi
 
 DB_CONNECTION_STRING="jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}?user=${DB_USER}&password=${DB_PASSWORD}"
 

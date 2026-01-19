@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 # ==============================================================================
 # HanziSpider Start Script
@@ -10,30 +11,40 @@
 # --- Configuration ---
 echo "Loading configuration..."
 
+if [ -f .env ]; then
+  # shellcheck disable=SC1091
+  source .env
+fi
+
 # General Settings
-MAX_THREADS=10
-SLEEP_INTERVAL_MS=5000
-WEBHANDLER="jsoup"            # or "selenium"
-OUTPUTHANDLER="mysqldatabase" # or "file"
+MAX_THREADS="${MAX_THREADS:-10}"
+SLEEP_INTERVAL_MS="${SLEEP_INTERVAL_MS:-5000}"
+WEBHANDLER="${WEBHANDLER:-jsoup}"            # or "selenium"
+OUTPUTHANDLER="${OUTPUTHANDLER:-mysqldatabase}" # or "file"
 
 # Proxy Settings (leave empty if no proxy is needed)
-PROXY=""     # e.g., "localhost"
-PROXYPORT="" # e.g., "3128"
+PROXY="${PROXY:-}"     # e.g., "localhost"
+PROXYPORT="${PROXYPORT:-}" # e.g., "3128"
 
 # --- Database Configuration ---
 # Set the database type you want to use: "mysql" or "postgresql"
-DB_TYPE="postgresql"
+DB_TYPE="${DB_TYPE:-postgresql}"
 
-DB_HOST="192.168.178.240"
-DB_NAME="crawler"
-DB_USER="crawler"
-DB_PASSWORD="crawlerX"
+DB_HOST="${DB_HOST:-192.168.178.240}"
+DB_NAME="${DB_NAME:-crawler}"
+DB_USER="${DB_USER:-crawler}"
+DB_PASSWORD="${DB_PASSWORD:-}"
 
 # Ports
 DB_PORT_MYSQL="3306"
 DB_PORT_POSTGRES="5432"
 
 # --- Set DB Connection String based on DB_TYPE ---
+if [ -z "$DB_PASSWORD" ]; then
+  echo "ERROR: DB_PASSWORD is not set. Provide it via .env or environment."
+  exit 1
+fi
+
 if [ "$DB_TYPE" == "mysql" ]; then
   DB_CONNECTION_STRING="jdbc:mysql://${DB_HOST}:${DB_PORT_MYSQL}/${DB_NAME}?user=${DB_USER}&password=${DB_PASSWORD}"
 elif [ "$DB_TYPE" == "postgresql" ]; then
@@ -55,7 +66,7 @@ export DB_CONNECTION_STRING
 
 echo "Configuration loaded successfully."
 echo "Database Type: $DB_TYPE"
-echo "Connection String will be: $DB_CONNECTION_STRING"
+echo "Connection String will be: ${DB_CONNECTION_STRING/password=${DB_PASSWORD}/password=****}"
 
 # --- Find and Run the Fat JAR ---
 echo "Starting HanziSpider..."
